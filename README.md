@@ -71,7 +71,9 @@ audit -u ncc_slow --nodes gpu-[210-214]  # cluster fan-out
 
 Modules are grouped **A** (host/NIC/system), **B** (link/RDMA physical),
 **C** (RDMA/fabric/cluster), **G** (GPU) — 51 checks, 12 use-case bundles.
-Full catalog and architecture in **[DESIGN.md](./DESIGN.md)**.
+
+📄 **[DESIGN.md](./DESIGN.md)** — full catalog, module contract, architecture.
+🚀 **[ROADMAP.md](./ROADMAP.md)** — the 3-year moonshot, phased plan, and exact 24-hour MVP scope.
 
 ---
 
