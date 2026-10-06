@@ -64,12 +64,37 @@ Cleanup applied to the raw output:
 - `nvidia-smi nvlink -s` produced **no output** — these Blackwell cards have no
   NVLink. The fixture records that explicitly so module G6 returns `NA`.
 
+### Fabric (IB / NIC) data
+
+`ibstat` / `rdma` CLIs are not in the pod, but `/sys/class/infiniband/` is. A
+shell loop dumps each device's state/link/rate/firmware into a parseable file:
+
+```bash
+kubectl -n $NS exec $POD -- sh -c 'for d in /sys/class/infiniband/*/; do
+  ... echo state/phys_state/rate/fw_ver/hca_type/counters/hw_counters ...
+done'                                                          > ib_sysfs.txt
+
+kubectl -n $NS exec $POD -- sh -c 'for n in /sys/class/net/*/; do
+  ... echo rx_errors/tx_errors/rx_dropped/tx_dropped/rx_crc_errors ...
+done'                                                          > net_stats.txt
+```
+
+Real result: **9× ConnectX-7 (MT41692), 100 Gb/s EDR, all ACTIVE / LinkUp,
+fw 32.43.4100.**
+
+> Caveat (honest): the `ports/1/counters/` subdir is **not exposed** inside the
+> container (`No such file or directory`), so the error/congestion counters in
+> the healthy `ib_sysfs.txt` are a **`0` baseline** (realistic for a healthy
+> node), not read values. Device/state/rate/firmware ARE real. Reading live
+> counters needs a privileged host-level pod, which was deliberately not created.
+
 ## 4. Fixture sets
 
 | Path | Source | Contents |
 |---|---|---|
-| `fixtures/cw0bec_blackwell_healthy/` | **Live capture** from `cw0bec` (above) | `nvidia-smi.txt`, `nvidia-smi_-q.txt`, `nvidia-smi_nvlink_-s.txt`, `query_gpu.csv`, `dmesg_xid.txt` (empty — healthy) |
+| `fixtures/cw0bec_blackwell_healthy/` | **Live capture** from `cw0bec` (above) | GPU: `nvidia-smi.txt`, `nvidia-smi_-q.txt`, `nvidia-smi_nvlink_-s.txt`, `query_gpu.csv`, `dmesg_xid.txt` (empty). Fabric: `ib_sysfs.txt` (real device/link + 0-counter baseline), `net_stats.txt` |
 | `fixtures/synth_gpu_fault/` | **Synthesized** from the healthy set | `query_gpu.csv` edited so GPU 3 has 12 uncorrectable ECC + 91 °C; `dmesg_xid.txt` with Xid 79/48 on GPU 3's real PCI bus (`0000:46:00`) so G3/G5 correlate on `gpu:3` |
+| `fixtures/synth_fabric_fault/` | **Synthesized** from the healthy IB dump | `ib_sysfs.txt`: mlx5_4 link errors (symbol/LER/LLI), mlx5_5 port DOWN, mlx5_6 congestion; `net_stats.txt`: eth1 tx errors — exercises B14/B13/B11/B3 |
 | `fixtures/nccl_healthy/nccl.log` | **Provided** real log (`~/Downloads/real_healthy.nccl.log`) | SUNK 2×8 H100 all-reduce, RDMA over `NET/IB…GDRDMA`, ~435 GB/s |
 | `fixtures/nccl_tcp_fallback/nccl.log` | **Provided** real log (`~/Downloads/real_misconfig.nccl.log`) | Same job, bad `NCCL_IB_HCA=ibp99` → silent fallback to `NET/Socket` (TCP), ~3.4 GB/s |
 
@@ -96,4 +121,6 @@ Fixtures let the whole tool run and be tested off-hardware:
 audit -u gpu_fault  --fixture fixtures/cw0bec_blackwell_healthy   # all pass
 audit -u gpu_fault  --fixture fixtures/synth_gpu_fault            # GPU-3 verdict
 audit -m N1         --fixture fixtures/nccl_tcp_fallback          # NCCL TCP-fallback verdict
+audit -u preflight  --fixture fixtures/cw0bec_blackwell_healthy   # GPU + fabric, all pass
+audit -u preflight  --fixture fixtures/synth_fabric_fault         # rdma_link_down verdict
 ```

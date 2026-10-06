@@ -18,3 +18,11 @@
   verdict: "NCCL fell back to TCP sockets on {scope} — RDMA unused; check NCCL_IB_HCA / IB device names. Bandwidth collapses ~100×."
   confidence: high
   severity: 3
+
+- id: rdma_link_down
+  when:
+    all:
+      - {module: B13, status: [FAIL]}           # a port is not Active/LinkUp
+  verdict: "RDMA port {scope} is DOWN (not Active/LinkUp) — check the cable/transceiver; drain the node if it persists."
+  confidence: high
+  severity: 3

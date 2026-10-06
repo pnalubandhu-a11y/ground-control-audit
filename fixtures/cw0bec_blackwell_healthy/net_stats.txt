@@ -1,0 +1,6 @@
+### eth0
+rx_errors: 0
+tx_errors: 0
+rx_dropped: 0
+tx_dropped: 0
+rx_crc_errors: 0

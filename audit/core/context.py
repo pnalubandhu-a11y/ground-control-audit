@@ -35,6 +35,32 @@ SOURCES: dict[str, tuple[list[str], str]] = {
     "dmesg_xid": (["sh", "-c", "dmesg | grep -i xid || true"], "dmesg_xid.txt"),
     # NCCL debug log — in live mode, point AUDIT_NCCL_LOG at the job's log file.
     "nccl_log": (["sh", "-c", 'cat "${AUDIT_NCCL_LOG:-/dev/null}"'], "nccl.log"),
+    # IB device/link/counter dump from /sys/class/infiniband (see docs §3).
+    "ib_sysfs": (
+        [
+            "sh", "-c",
+            'for d in /sys/class/infiniband/*/; do dev=$(basename "$d"); p="$d"ports/1; '
+            'echo "### $dev"; echo "fw_ver: $(cat "$d"fw_ver 2>/dev/null)"; '
+            'echo "hca_type: $(cat "$d"hca_type 2>/dev/null)"; '
+            'echo "state: $(cat "$p"/state 2>/dev/null)"; '
+            'echo "phys_state: $(cat "$p"/phys_state 2>/dev/null)"; '
+            'echo "rate: $(cat "$p"/rate 2>/dev/null)"; '
+            'for c in "$p"/counters/* "$p"/hw_counters/*; do [ -f "$c" ] && '
+            'echo "$(echo "$c"|grep -q hw_counters && echo hw_counters || echo counters).'
+            '$(basename "$c"): $(cat "$c" 2>/dev/null)"; done; done',
+        ],
+        "ib_sysfs.txt",
+    ),
+    # Ethernet NIC error counters from /sys/class/net/*/statistics.
+    "net_stats": (
+        [
+            "sh", "-c",
+            'for n in /sys/class/net/*/; do ifc=$(basename "$n"); [ "$ifc" = lo ] && continue; '
+            'echo "### $ifc"; for s in rx_errors tx_errors rx_dropped tx_dropped rx_crc_errors; '
+            'do echo "$s: $(cat "$n"statistics/$s 2>/dev/null)"; done; done',
+        ],
+        "net_stats.txt",
+    ),
 }
 
 
