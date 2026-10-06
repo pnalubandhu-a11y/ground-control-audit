@@ -1,0 +1,14 @@
+# Use-case bundles: name -> ordered list of module IDs.
+# Data only (no logic). Verbatim from the reference `audit -l`.
+thermal:        [A3, G7, G1, G6]
+imex_fabric:    [A9, B2, C12, C13, C15, G6, G9]
+cluster_drift:  [C6, C10, C11, C12, C13, C14, C15, C16]
+rdma_auth:      [C3, B10, B13, B14]
+preflight:      [A1, A2, A3, A4, A5, A6, A7, A8, A9, B3, B11, B12, B13, B14, G1, G3, G5, G6, G7, G8, G9]
+nvlink_health:  [G6, G10, C15, A6]
+ncc_slow:       [A1, A2, A6, B11, B12, B13, B14, C1, C2, C11, C14, G6, G10]
+topology:       [A2, A6, A8, B11, C14, G2, G8]
+gpu_fault:      [G1, G2, G3, G4, G5, G6, G7, G8, G9, G10, A6, A8]
+control_plane:  [A3, A4, A1, C4, C6]
+network_perf:   [B3, B11, B12, B13, B14, C7, C8, C9, C10]
+rdma_debug:     [A1, B3, B11, B12, B13, B14, C1, C2, C3, C4, C11]
