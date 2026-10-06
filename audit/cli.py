@@ -16,7 +16,7 @@ from .core.catalog import ModuleSpec
 from .core.context import Context
 from .core.profile import get_profile
 from .core.runner import run_modules
-from .render import terminal
+from .render import json_out, terminal
 from .verdicts import evaluate
 
 
@@ -80,8 +80,11 @@ def main(argv: list[str] | None = None) -> int:
     profile = get_profile(args.profile)
     results = run_modules(specs, ctx, allow_active=args.allow_active, profile=profile)
     verdicts = evaluate(results)
-    terminal.print_run(results, verdicts, show_verdict=not args.no_verdict,
-                       profile=profile)
+    if args.json:
+        json_out.print_json(results, verdicts, profile=profile)
+    else:
+        terminal.print_run(results, verdicts, show_verdict=not args.no_verdict,
+                           profile=profile)
     return terminal.exit_code(results)
 
 

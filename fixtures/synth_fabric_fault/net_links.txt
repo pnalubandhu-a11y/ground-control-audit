@@ -1,0 +1,4 @@
+### eth0
+mtu: 9000
+operstate: up
+carrier: 1
