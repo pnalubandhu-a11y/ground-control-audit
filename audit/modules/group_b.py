@@ -81,6 +81,9 @@ class RdmaLinkState(Module):
                 f"RDMA port(s) not Active/LinkUp: {', '.join(down)}",
                 scope=down[0],
                 evidence={"down": down},
+                remediation=("An RDMA network port is down. Check the cable and "
+                             "transceiver seating; if it stays down the node should "
+                             "be drained for inspection."),
             )
         return self.ok(f"all {len(devs)} ports Active/LinkUp")
 

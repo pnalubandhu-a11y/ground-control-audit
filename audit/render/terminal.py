@@ -11,6 +11,8 @@ import sys
 
 from ..core.catalog import H100, ModuleSpec
 from ..core import registry
+from ..core.profile import Profile
+from ..core.redact import redact_result, redact_verdict
 from ..core.result import ModuleResult, Status, Verdict
 
 _GROUP_TITLES = {
@@ -103,17 +105,34 @@ _STATUS_COLOR = {
 }
 
 
+_ESCALATION = "Contact CoreWeave support with this report."
+
+
 def render_run(
     results: list[ModuleResult],
     verdicts: list[Verdict],
     *,
     show_verdict: bool = True,
+    profile: Profile | None = None,
     stream=None,
 ) -> str:
-    """Render a run: verdict banner (if any) on top, then per-module lines."""
+    """Render a run: verdict banner (if any) on top, then per-module lines.
+
+    In a redacting profile (customer), internal identifiers are masked and each
+    FAIL carries plain-English remediation + a support escalation line.
+    """
     stream = stream or sys.stdout
     paint = _Paint(_color_enabled(stream))
     lines: list[str] = []
+
+    if profile and profile.redact:
+        results = [redact_result(r) for r in results]
+        verdicts = [redact_verdict(v) for v in verdicts]
+
+    if profile and profile.name != "internal":
+        lines.append(paint(
+            f"  profile: {profile.name} (read-only, identifiers redacted)", _DIM))
+        lines.append("")
 
     if show_verdict and verdicts:
         for v in verdicts:
@@ -121,11 +140,16 @@ def render_run(
             lines.append(paint(banner, _BOLD + _RED))
         lines.append("")
 
+    show_rem = bool(profile and profile.show_remediation)
     for r in results:
         code = _STATUS_COLOR.get(r.status, "")
         tag = paint(f"{str(r.status):<5}", code)
         summary = r.summary or ""
         lines.append(f"  {r.id:<4} {r.name:<32} {tag} {summary}")
+        if show_rem and r.status is Status.FAIL:
+            rem = r.remediation or f"Investigate {r.name} on {r.scope}."
+            lines.append(paint(f"         ↳ {rem}", _DIM))
+            lines.append(paint(f"         ↳ {_ESCALATION}", _DIM))
 
     counts = _tally(results)
     lines.append("")
@@ -140,10 +164,10 @@ def render_run(
     return "\n".join(lines)
 
 
-def print_run(results, verdicts, *, show_verdict=True, stream=None) -> None:
+def print_run(results, verdicts, *, show_verdict=True, profile=None, stream=None) -> None:
     stream = stream or sys.stdout
-    print(render_run(results, verdicts, show_verdict=show_verdict, stream=stream),
-          file=stream)
+    print(render_run(results, verdicts, show_verdict=show_verdict,
+                     profile=profile, stream=stream), file=stream)
 
 
 def _tally(results: list[ModuleResult]) -> dict:

@@ -93,6 +93,9 @@ class GpuEcc(Module):
                 f"({g['ecc_uncorr']} uncorr, {g['ecc_corr']} corr)",
                 scope=f"gpu:{g['index']}",
                 evidence={"uncorrectable": [r["index"] for r in uncorr]},
+                remediation=("Uncorrectable memory (ECC) errors indicate failing GPU "
+                             "memory. Stop scheduling work on this GPU; it should be "
+                             "replaced."),
             )
         if corr:
             g = corr[0]
@@ -127,6 +130,8 @@ class GpuXid(Module):
             f"Xid {xids} on gpu:{idx}",
             scope=f"gpu:{idx}",
             evidence={"xids": hits},
+            remediation=("This GPU is reporting hardware (Xid) errors. Cordon the "
+                         "node so no new work lands on it; the GPU needs replacement."),
         )
 
 

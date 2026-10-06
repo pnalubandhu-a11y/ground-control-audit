@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from .catalog import ModuleSpec
 from .context import Context
+from .profile import Profile
 from .result import ModuleResult, Status
 from ..modules import get_impl, has_impl
 
@@ -19,25 +20,35 @@ def run_modules(
     ctx: Context,
     *,
     allow_active: bool = False,
+    profile: Profile | None = None,
 ) -> list[ModuleResult]:
     """Run each spec and return results in the given order."""
     results: list[ModuleResult] = []
     for s in specs:
-        results.append(_run_one(s, ctx, allow_active))
+        results.append(_run_one(s, ctx, allow_active, profile))
     return results
 
 
-def _run_one(s: ModuleSpec, ctx: Context, allow_active: bool) -> ModuleResult:
+def _run_one(
+    s: ModuleSpec, ctx: Context, allow_active: bool, profile: Profile | None
+) -> ModuleResult:
     # Platform detection: a module whose requirements aren't met is NA.
     if not s.requires <= ctx.caps:
         missing = ", ".join(sorted(s.requires - ctx.caps))
         return ModuleResult(s.id, s.name, Status.NA, summary=f"requires {missing}")
 
-    # Active (fabric-perturbing) tests need an explicit opt-in.
-    if s.active and not allow_active:
-        return ModuleResult(
-            s.id, s.name, Status.SKIP, summary="active test (needs --allow-active)"
-        )
+    # Active (fabric-perturbing) tests: hard-blocked in read-only profiles,
+    # otherwise need an explicit --allow-active opt-in.
+    if s.active:
+        if profile and profile.enforce_readonly:
+            return ModuleResult(
+                s.id, s.name, Status.SKIP,
+                summary=f"active test blocked in {profile.name} profile (read-only)",
+            )
+        if not allow_active:
+            return ModuleResult(
+                s.id, s.name, Status.SKIP, summary="active test (needs --allow-active)"
+            )
 
     if not has_impl(s.id):
         return ModuleResult(

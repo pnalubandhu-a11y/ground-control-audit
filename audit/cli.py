@@ -14,6 +14,7 @@ from . import __version__
 from .core import registry
 from .core.catalog import ModuleSpec
 from .core.context import Context
+from .core.profile import get_profile
 from .core.runner import run_modules
 from .render import terminal
 from .verdicts import evaluate
@@ -76,9 +77,11 @@ def main(argv: list[str] | None = None) -> int:
     else:
         ctx = Context(mode="live")
 
-    results = run_modules(specs, ctx, allow_active=args.allow_active)
+    profile = get_profile(args.profile)
+    results = run_modules(specs, ctx, allow_active=args.allow_active, profile=profile)
     verdicts = evaluate(results)
-    terminal.print_run(results, verdicts, show_verdict=not args.no_verdict)
+    terminal.print_run(results, verdicts, show_verdict=not args.no_verdict,
+                       profile=profile)
     return terminal.exit_code(results)
 
 
