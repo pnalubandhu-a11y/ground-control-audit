@@ -143,6 +143,71 @@ class GpuNvlink(Module):
         return self.ok("NVLink links active")
 
 
+def _nvsmi_q_blocks(text: str) -> list[str]:
+    """Split `nvidia-smi -q` into per-GPU blocks (each starts with 'GPU <bus>')."""
+    blocks: list[str] = []
+    cur: list[str] = []
+    for line in text.splitlines():
+        if re.match(r"^GPU \S", line):
+            if cur:
+                blocks.append("\n".join(cur))
+            cur = [line]
+        elif cur:
+            cur.append(line)
+    if cur:
+        blocks.append("\n".join(cur))
+    return blocks
+
+
+@register
+class GpuBusHealth(Module):
+    spec = spec("G8")
+    # PCIe replay thresholds (since reset).
+    _WARN, _FAIL = 100, 1000
+
+    def run(self, ctx: Context) -> ModuleResult:
+        blocks = _nvsmi_q_blocks(ctx.collect("nvidia_smi_q"))
+        if not blocks:
+            return self.na("no nvidia-smi -q output")
+        replays: list[tuple[int, int]] = []
+        for i, b in enumerate(blocks):
+            m = re.search(r"Replays Since Reset\s*:\s*(\d+)", b)
+            if m:
+                replays.append((i, int(m.group(1))))
+        if not replays:
+            return self.na("no PCIe replay data")
+        idx, worst = max(replays, key=lambda t: t[1])
+        if worst >= self._FAIL:
+            return self.fail(f"gpu:{idx} PCIe replays={worst}", scope=f"gpu:{idx}",
+                             evidence={"max_replays": worst})
+        if worst >= self._WARN:
+            return self.warn(f"gpu:{idx} PCIe replays={worst}", scope=f"gpu:{idx}",
+                             evidence={"max_replays": worst})
+        return self.ok(f"PCIe replays nominal (max {worst})",
+                       evidence={"max_replays": worst})
+
+
+@register
+class GpuFabricManager(Module):
+    spec = spec("G9")
+
+    def run(self, ctx: Context) -> ModuleResult:
+        blocks = _nvsmi_q_blocks(ctx.collect("nvidia_smi_q"))
+        if not blocks:
+            return self.na("no nvidia-smi -q output")
+        states = []
+        for b in blocks:
+            m = re.search(r"Fabric\b[^\n]*\n\s*State\s*:\s*(\S+)", b)
+            if m:
+                states.append(m.group(1))
+        if not states or all(s.upper() in {"N/A", "NA"} for s in states):
+            return self.na("no NVSwitch fabric (Fabric Manager not applicable)")
+        bad = [s for s in states if s not in {"Completed", "In", "Completed."}]
+        if bad:
+            return self.fail(f"Fabric Manager not ready: {sorted(set(bad))}")
+        return self.ok(f"Fabric Manager ready ({len(states)} GPUs)")
+
+
 @register
 class GpuThermal(Module):
     spec = spec("G7")
