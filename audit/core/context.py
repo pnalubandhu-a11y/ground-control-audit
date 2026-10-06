@@ -51,6 +51,23 @@ SOURCES: dict[str, tuple[list[str], str]] = {
         ],
         "ib_sysfs.txt",
     ),
+    # Group A host sources.
+    "net_links": (
+        [
+            "sh", "-c",
+            'for n in /sys/class/net/*/; do i=$(basename "$n"); [ "$i" = lo ] && continue; '
+            'echo "### $i"; echo "mtu: $(cat "$n"mtu 2>/dev/null)"; '
+            'echo "operstate: $(cat "$n"operstate 2>/dev/null)"; '
+            'echo "carrier: $(cat "$n"carrier 2>/dev/null)"; done',
+        ],
+        "net_links.txt",
+    ),
+    "kernel": (["uname", "-r"], "kernel.txt"),
+    "meminfo": (["sh", "-c", "grep -i huge /proc/meminfo"], "meminfo.txt"),
+    "ipv6": (["cat", "/proc/net/if_inet6"], "ipv6.txt"),
+    "interrupts": (["sh", "-c", "grep -c mlx5 /proc/interrupts"], "interrupts.txt"),
+    "nvidia_topo": (["nvidia-smi", "topo", "-m"], "nvidia_topo.txt"),
+    "ip_rule": (["ip", "rule", "show"], "ip_rule.txt"),
     # Ethernet NIC error counters from /sys/class/net/*/statistics.
     "net_stats": (
         [

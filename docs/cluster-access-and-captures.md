@@ -88,11 +88,33 @@ fw 32.43.4100.**
 > node), not read values. Device/state/rate/firmware ARE real. Reading live
 > counters needs a privileged host-level pod, which was deliberately not created.
 
+### Host (Group A) data
+
+```bash
+kubectl -n $NS exec $POD -- sh -c 'for n in /sys/class/net/*/; do ... mtu/operstate/carrier ... done' > net_links.txt
+kubectl -n $NS exec $POD -- uname -r                       > kernel.txt
+kubectl -n $NS exec $POD -- sh -c 'grep -i huge /proc/meminfo' > meminfo.txt
+kubectl -n $NS exec $POD -- cat /proc/net/if_inet6         > ipv6.txt
+kubectl -n $NS exec $POD -- sh -c 'grep -c mlx5 /proc/interrupts' > interrupts.txt
+kubectl -n $NS exec $POD -- nvidia-smi topo -m | sed 's/\x1b\[[0-9;]*m//g' > nvidia_topo.txt
+```
+
+Real results: kernel `6.17.13-…-coreweave-amd64`, driver `580.173.02`, eth0 MTU
+9000 up, THP active, 160 mlx5 IRQ lines, and a real `nvidia-smi topo -m` matrix
+showing **all 9 NICs on NUMA 0** (GPU0–3 `NODE`-local, GPU4–7 `SYS`).
+
+> Caveats (honest):
+> - The pod's **network namespace only shows `eth0`** (no `ip`/`lspci`, no host
+>   view of eth1/ibp*). So A2/A3 see one NIC and A4 returns `NA`.
+> - **`ip_rule.txt` is synthesized** — the pod has no iproute2 / host netns.
+>   It models realistic per-NIC policy routing so A1 can be exercised; a live
+>   host run reads real `ip rule show`.
+
 ## 4. Fixture sets
 
 | Path | Source | Contents |
 |---|---|---|
-| `fixtures/cw0bec_blackwell_healthy/` | **Live capture** from `cw0bec` (above) | GPU: `nvidia-smi.txt`, `nvidia-smi_-q.txt`, `nvidia-smi_nvlink_-s.txt`, `query_gpu.csv`, `dmesg_xid.txt` (empty). Fabric: `ib_sysfs.txt` (real device/link + 0-counter baseline), `net_stats.txt` |
+| `fixtures/cw0bec_blackwell_healthy/` | **Live capture** from `cw0bec` (above) | GPU: `nvidia-smi.txt`, `nvidia-smi_-q.txt`, `nvidia-smi_nvlink_-s.txt`, `query_gpu.csv`, `dmesg_xid.txt` (empty). Fabric: `ib_sysfs.txt` (real device/link + 0-counter baseline), `net_stats.txt`. Host: `net_links.txt`, `kernel.txt`, `meminfo.txt`, `ipv6.txt`, `interrupts.txt`, `nvidia_topo.txt` (all real), `ip_rule.txt` (synthesized) |
 | `fixtures/synth_gpu_fault/` | **Synthesized** from the healthy set | `query_gpu.csv` edited so GPU 3 has 12 uncorrectable ECC + 91 °C; `dmesg_xid.txt` with Xid 79/48 on GPU 3's real PCI bus (`0000:46:00`) so G3/G5 correlate on `gpu:3` |
 | `fixtures/synth_fabric_fault/` | **Synthesized** from the healthy IB dump | `ib_sysfs.txt`: mlx5_4 link errors (symbol/LER/LLI), mlx5_5 port DOWN, mlx5_6 congestion; `net_stats.txt`: eth1 tx errors — exercises B14/B13/B11/B3 |
 | `fixtures/nccl_healthy/nccl.log` | **Provided** real log (`~/Downloads/real_healthy.nccl.log`) | SUNK 2×8 H100 all-reduce, RDMA over `NET/IB…GDRDMA`, ~435 GB/s |
