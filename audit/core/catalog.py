@@ -114,5 +114,15 @@ _GROUP_G = [
 
 MODULES: list[ModuleSpec] = [*_GROUP_A, *_GROUP_B, *_GROUP_C, *_GROUP_G]
 
-# Convenience index by id, built once.
-MODULES_BY_ID: dict[str, ModuleSpec] = {m.id: m for m in MODULES}
+# Extension modules — CoreWeave additions beyond the reference tool's 51 checks.
+# Kept separate so the reference catalog (and its test) stays verbatim at 51.
+# Group "N" = NCCL / collectives.
+EXTENSION_MODULES: list[ModuleSpec] = [
+    _m("N1", "nccl_transport_health", "N"),
+]
+
+# Everything the runner/registry can resolve (reference + extensions).
+ALL_MODULES: list[ModuleSpec] = [*MODULES, *EXTENSION_MODULES]
+
+# Convenience index by id, built once (covers extensions too).
+MODULES_BY_ID: dict[str, ModuleSpec] = {m.id: m for m in ALL_MODULES}

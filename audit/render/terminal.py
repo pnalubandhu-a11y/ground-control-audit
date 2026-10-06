@@ -18,6 +18,7 @@ _GROUP_TITLES = {
     "B": "link / RDMA physical",
     "C": "RDMA / fabric / cluster",
     "G": "GPU",
+    "N": "NCCL / collectives (extension)",
 }
 
 # ANSI codes

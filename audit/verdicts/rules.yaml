@@ -10,3 +10,11 @@
   verdict: "Failing GPU {scope} (XID + ECC) — cordon the node and open an RMA."
   confidence: high
   severity: 3
+
+- id: nccl_tcp_fallback
+  when:
+    all:
+      - {module: N1, status: [FAIL]}            # NCCL on TCP sockets, not RDMA
+  verdict: "NCCL fell back to TCP sockets on {scope} — RDMA unused; check NCCL_IB_HCA / IB device names. Bandwidth collapses ~100×."
+  confidence: high
+  severity: 3

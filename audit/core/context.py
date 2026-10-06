@@ -33,6 +33,8 @@ SOURCES: dict[str, tuple[list[str], str]] = {
         "query_gpu.csv",
     ),
     "dmesg_xid": (["sh", "-c", "dmesg | grep -i xid || true"], "dmesg_xid.txt"),
+    # NCCL debug log — in live mode, point AUDIT_NCCL_LOG at the job's log file.
+    "nccl_log": (["sh", "-c", 'cat "${AUDIT_NCCL_LOG:-/dev/null}"'], "nccl.log"),
 }
 
 

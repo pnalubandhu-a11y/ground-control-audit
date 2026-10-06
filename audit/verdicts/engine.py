@@ -55,12 +55,11 @@ def _match(rule: dict, by_id: dict[str, ModuleResult]) -> Verdict | None:
             return None
         matched.append(res)
 
-    scope = "node"
-    if when.get("same_scope"):
-        scopes = {m.scope for m in matched}
-        if len(scopes) != 1:
-            return None  # conditions matched but not on one shared scope
-        scope = next(iter(scopes))
+    scopes = {m.scope for m in matched}
+    if when.get("same_scope") and len(scopes) != 1:
+        return None  # conditions matched but not on one shared scope
+    # Use the shared scope when the matched results agree; else fall back to node.
+    scope = next(iter(scopes)) if len(scopes) == 1 else "node"
 
     return Verdict(
         id=rule["id"],

@@ -12,7 +12,7 @@ from pathlib import Path
 
 import yaml
 
-from .catalog import MODULES, MODULES_BY_ID, ModuleSpec
+from .catalog import ALL_MODULES, MODULES_BY_ID, ModuleSpec
 
 # audit/core/registry.py -> audit/bundles/usecases.yaml
 _BUNDLES_PATH = Path(__file__).resolve().parent.parent / "bundles" / "usecases.yaml"
@@ -33,7 +33,7 @@ def get_module(module_id: str) -> ModuleSpec:
 def modules_by_group() -> dict[str, list[ModuleSpec]]:
     """Modules grouped by their group letter, in catalog order."""
     groups: dict[str, list[ModuleSpec]] = {}
-    for m in MODULES:
+    for m in ALL_MODULES:
         groups.setdefault(m.group, []).append(m)
     return groups
 
