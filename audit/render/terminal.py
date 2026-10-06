@@ -114,6 +114,7 @@ def render_run(
     *,
     show_verdict: bool = True,
     profile: Profile | None = None,
+    verbose: bool = False,
     stream=None,
 ) -> str:
     """Render a run: verdict banner (if any) on top, then per-module lines.
@@ -146,6 +147,8 @@ def render_run(
         tag = paint(f"{str(r.status):<5}", code)
         summary = r.summary or ""
         lines.append(f"  {r.id:<4} {r.name:<32} {tag} {summary}")
+        if verbose and r.evidence:
+            lines.append(paint(f"         · evidence: {r.evidence}", _DIM))
         if show_rem and r.status is Status.FAIL:
             rem = r.remediation or f"Investigate {r.name} on {r.scope}."
             lines.append(paint(f"         ↳ {rem}", _DIM))
@@ -164,10 +167,11 @@ def render_run(
     return "\n".join(lines)
 
 
-def print_run(results, verdicts, *, show_verdict=True, profile=None, stream=None) -> None:
+def print_run(results, verdicts, *, show_verdict=True, profile=None,
+              verbose=False, stream=None) -> None:
     stream = stream or sys.stdout
     print(render_run(results, verdicts, show_verdict=show_verdict,
-                     profile=profile, stream=stream), file=stream)
+                     profile=profile, verbose=verbose, stream=stream), file=stream)
 
 
 def _tally(results: list[ModuleResult]) -> dict:
