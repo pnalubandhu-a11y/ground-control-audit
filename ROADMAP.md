@@ -21,9 +21,9 @@ The moon is to make that expertise **autonomous, predictive, and fleet-scale**.
 
 **What we land in 24 hours:** the *walking skeleton* of that flight director —
 the module framework, platform auto-detection, and the verdict-correlation engine
-that every autonomous layer later plugs into. It runs live on CoreWeave H100
-today and returns real root-cause verdicts. Same architecture; the future is
-depth, not a rewrite.
+that every autonomous layer later plugs into. It runs live on CoreWeave `cw0bec`
+(RTX PRO 6000 Blackwell) today and returns real root-cause verdicts. Same
+architecture; the future is depth, not a rewrite.
 
 ---
 
@@ -98,14 +98,14 @@ The hackathon lands **Phase 0** — a vertical slice through the whole stack.
 ### Phase 0 — Walking Skeleton *(the hackathon, 24h)*
 The end-to-end path proven on real hardware:
 - CLI (`-l`, `-m`, `-u`, `--profile`, `--json`), module contract, registry.
-- **Platform auto-detection** → Blackwell/IMEX checks degrade to `NA` on H100.
-- **12 MVP modules** running live on CoreWeave SUNK H100 (§4).
+- **Platform auto-detection** → IMEX/NVLink checks degrade to `NA` on `cw0bec`.
+- **12 MVP modules** running live on CoreWeave `cw0bec` (RTX PRO 6000 Blackwell) (§4).
 - **Verdict engine + 3–4 correlation rules** (the moonshot differentiator).
 - Bundles `preflight`, `ncc_slow`, `gpu_fault`.
 - Three-audience profiles: `internal` + `customer` (redaction).
 - Fixtures so the demo is bullet-proof even if the cluster hiccups.
 
-**Deliverable:** `audit -u ncc_slow` on a live H100 node returns a named root
+**Deliverable:** `audit -u gpu_fault` on a live `cw0bec` node returns a named root
 cause with an action.
 
 ### Phase 1 — Complete Checker *(~3 months)*
@@ -141,7 +141,7 @@ From point-in-time to always-on, wired into Mission Control:
 ## 4. Hackathon MVP — exact scope
 
 **12 modules**, chosen for maximum demo impact and because they run natively on
-H100 (no Blackwell dependency):
+`cw0bec` (RTX PRO 6000 Blackwell — no GB200/IMEX dependency):
 
 | # | Module | Group | Why it's in the MVP |
 |---|--------|-------|---------------------|
@@ -176,6 +176,6 @@ prediction, and remediation.
 
 > We declared a moon that's **3 years out** — an autonomous, predictive,
 > fleet-scale GPU-fabric flight director — and in **24 hours** we landed the
-> vertical slice that proves it: real checks on real H100 hardware, correlated
+> vertical slice that proves it: real checks on real `cw0bec` Blackwell hardware, correlated
 > into a root-cause verdict a human can act on in 30 seconds. Everything above it
 > is depth on the same spine.

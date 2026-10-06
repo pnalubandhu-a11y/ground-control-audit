@@ -86,19 +86,24 @@ At startup the runner probes the host and builds a capability set
 (`{ib, roce, nvswitch, dcgm, fabric_manager, blackwell, imex, slurm/pyxis...}`).
 A module whose `requires` is not satisfied returns **`NA`** — it never crashes.
 
-On **H100 (cw0bec)** ~90% of modules run natively. The Blackwell/IMEX-specific
-ones auto-degrade to `NA`:
+The actual demo node — CoreWeave `cw0bec` — is **8× NVIDIA RTX PRO 6000
+Blackwell Server Edition** (not H100, despite earlier framing). Most modules run
+natively there; the GB200/GB300-specific ones auto-degrade to `NA`:
 
 - **A9** `imex_readiness`, **B2** `imex_state`, **C12** `imex_peer_topology_consistency`,
-  **C13** `imex_rack_connectivity_health` → `NA` ("requires GB200/GB300").
+  **C13** `imex_rack_connectivity_health` → `NA` (IMEX requires GB200/GB300).
+- **G6** `gpu_nvlink` → `NA` on these PCIe cards (no NVLink fabric).
 
 This auto-detection is a deliberate demo beat: *"it detects the platform and
 runs exactly what applies."*
 
 ### 3.2 Module catalog
 
-IDs and names are preserved verbatim from the reference tool. `H100` column:
-✅ runs natively on cw0bec · ⚠️ partial · 🚫 `NA` (Blackwell/IMEX-only) ·
+IDs and names are preserved verbatim from the reference tool. The `H100` column
+is the reference-design applicability target (H100 is the broad fleet platform);
+the live demo node `cw0bec` is RTX PRO 6000 Blackwell, where the same NA rules
+apply (IMEX + NVLink degrade to `NA`). `H100` column:
+✅ runs natively · ⚠️ partial · 🚫 `NA` (Blackwell/IMEX-only) ·
 🔴 active (needs `--allow-active`).
 
 #### Group A — host / NIC / system
@@ -316,7 +321,7 @@ hackathon/audit/
 ### MVP (must-have for the demo)
 - CLI: `-l`, `-m`, `-u`, `--profile`, `--json`.
 - Registry + module contract + platform auto-detect → `NA`.
-- ~12 highest-impact modules **real on H100**:
+- ~12 highest-impact modules **real on `cw0bec` (Blackwell)**:
   G1, G3, G5, G6, G7 (GPU) · B3, B12, B13, B14 (RDMA) · A2, A6 (host) · C16
   (discovery).
 - Verdict engine + **3–4 rules** (§6).

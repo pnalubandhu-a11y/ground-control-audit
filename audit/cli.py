@@ -12,7 +12,11 @@ import sys
 
 from . import __version__
 from .core import registry
+from .core.catalog import ModuleSpec
+from .core.context import Context
+from .core.runner import run_modules
 from .render import terminal
+from .verdicts import evaluate
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -32,20 +36,22 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--json", action="store_true", help="machine-readable output")
     p.add_argument("--allow-active", action="store_true",
                    help="permit active (fabric-perturbing) tests")
+    p.add_argument("--fixture", metavar="DIR",
+                   help="run against a recorded fixture set instead of live host")
     p.add_argument("--no-verdict", action="store_true",
                    help="skip the verdict banner; per-module output only")
     p.add_argument("-v", "--verbose", action="store_true")
     return p
 
 
-def _not_implemented(what: str) -> int:
-    print(
-        f"audit: {what} is parsed but not implemented yet in this build.\n"
-        f"       The module runner + verdict engine land in the next increment.\n"
-        f"       Try `audit -l` to see the catalog.",
-        file=sys.stderr,
-    )
-    return 0
+def _select(args) -> list[ModuleSpec] | None:
+    """Resolve -m / -u into an ordered list of specs, or None if neither given."""
+    if args.modules:
+        ids = [s.strip() for s in args.modules.split(",") if s.strip()]
+        return [registry.get_module(mid) for mid in ids]
+    if args.usecase:
+        return registry.resolve_bundle(args.usecase)
+    return None
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -55,25 +61,25 @@ def main(argv: list[str] | None = None) -> int:
         terminal.print_list()
         return 0
 
-    # Validate run selectors against the catalog/bundles even though execution
-    # is not wired yet — fail fast on typos, and prove the registry works.
     try:
-        if args.modules:
-            ids = [s.strip() for s in args.modules.split(",") if s.strip()]
-            for mid in ids:
-                registry.get_module(mid)  # raises RegistryError on unknown id
-            return _not_implemented(f"running modules {ids}")
-
-        if args.usecase:
-            specs = registry.resolve_bundle(args.usecase)  # raises on unknown bundle
-            ids = [s.id for s in specs]
-            return _not_implemented(f"running bundle {args.usecase!r} ({ids})")
+        specs = _select(args)
     except registry.RegistryError as exc:
         print(f"audit: {exc}", file=sys.stderr)
         return 2
 
-    build_parser().print_help()
-    return 0
+    if specs is None:
+        build_parser().print_help()
+        return 0
+
+    if args.fixture:
+        ctx = Context(mode="fixture", fixture_dir=args.fixture)
+    else:
+        ctx = Context(mode="live")
+
+    results = run_modules(specs, ctx, allow_active=args.allow_active)
+    verdicts = evaluate(results)
+    terminal.print_run(results, verdicts, show_verdict=not args.no_verdict)
+    return terminal.exit_code(results)
 
 
 if __name__ == "__main__":

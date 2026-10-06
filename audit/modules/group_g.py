@@ -1,0 +1,168 @@
+"""Group G — GPU checks. First real implementations (G1, G3, G5, G6, G7).
+
+All parse `nvidia-smi` outputs provided by the Context. Scope strings use
+`gpu:<index>` so the verdict engine can correlate failures on the same GPU.
+"""
+
+from __future__ import annotations
+
+import re
+
+from ..core.context import Context
+from ..core.result import ModuleResult, Status
+from .base import Module, register, spec
+
+# Thermal thresholds (°C). Blackwell/H100 throttle well above these.
+_TEMP_WARN = 80
+_TEMP_FAIL = 90
+
+
+def _parse_gpu_query(text: str) -> list[dict]:
+    """Parse the gpu_query CSV into row dicts. Tolerates '# comments' / blanks."""
+    rows: list[dict] = []
+    header: list[str] | None = None
+    for line in text.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        cells = [c.strip() for c in line.split(",")]
+        if header is None:
+            header = cells
+            continue
+        row = dict(zip(header, cells))
+        rows.append(
+            {
+                "index": row.get("index", ""),
+                "name": row.get("name", ""),
+                "bus_id": row.get("pci.bus_id", ""),
+                "temp": _to_int(row.get("temperature.gpu")),
+                "ecc_uncorr": _to_int(
+                    row.get("ecc.errors.uncorrected.aggregate.total")
+                ),
+                "ecc_corr": _to_int(row.get("ecc.errors.corrected.aggregate.total")),
+            }
+        )
+    return rows
+
+
+def _to_int(val) -> int | None:
+    try:
+        return int(str(val).strip())
+    except (TypeError, ValueError):
+        return None  # "N/A", "", etc.
+
+
+def _bus_key(bus: str) -> str:
+    """Normalize a PCI id to 'bus:device' so dmesg and nvidia-smi forms match.
+
+    nvidia-smi: '00000000:46:00.0'  ->  '46:00'
+    dmesg Xid : '0000:46:00'        ->  '46:00'
+    """
+    parts = bus.replace(".0", "").split(":")
+    return ":".join(parts[-2:]) if len(parts) >= 2 else bus
+
+
+@register
+class GpuCount(Module):
+    spec = spec("G1")
+
+    def run(self, ctx: Context) -> ModuleResult:
+        rows = _parse_gpu_query(ctx.collect("gpu_query"))
+        if not rows:
+            return self.fail("no GPUs detected", evidence={"count": 0})
+        models = sorted({r["name"] for r in rows})
+        model = models[0] if len(models) == 1 else ", ".join(models)
+        return self.ok(
+            f"{len(rows)}× {model}",
+            evidence={"count": len(rows), "models": models},
+        )
+
+
+@register
+class GpuEcc(Module):
+    spec = spec("G3")
+
+    def run(self, ctx: Context) -> ModuleResult:
+        rows = _parse_gpu_query(ctx.collect("gpu_query"))
+        uncorr = [r for r in rows if (r["ecc_uncorr"] or 0) > 0]
+        corr = [r for r in rows if (r["ecc_corr"] or 0) > 0]
+        if uncorr:
+            g = uncorr[0]
+            return self.fail(
+                f"uncorrectable ECC on gpu:{g['index']} "
+                f"({g['ecc_uncorr']} uncorr, {g['ecc_corr']} corr)",
+                scope=f"gpu:{g['index']}",
+                evidence={"uncorrectable": [r["index"] for r in uncorr]},
+            )
+        if corr:
+            g = corr[0]
+            return self.warn(
+                f"correctable ECC on gpu:{g['index']} ({g['ecc_corr']} corr)",
+                scope=f"gpu:{g['index']}",
+                evidence={"correctable": [r["index"] for r in corr]},
+            )
+        return self.ok("no ECC errors", evidence={"gpus": len(rows)})
+
+
+@register
+class GpuXid(Module):
+    spec = spec("G5")
+    _XID_RE = re.compile(r"Xid\s*\(PCI:([0-9a-fA-F:.]+)\):\s*(\d+)")
+
+    def run(self, ctx: Context) -> ModuleResult:
+        text = ctx.collect("dmesg_xid")
+        bus_to_index = {
+            _bus_key(r["bus_id"]): r["index"]
+            for r in _parse_gpu_query(ctx.collect("gpu_query"))
+        }
+        hits: list[tuple[str, str]] = []  # (gpu_index, xid)
+        for m in self._XID_RE.finditer(text):
+            idx = bus_to_index.get(_bus_key(m.group(1)), "?")
+            hits.append((idx, m.group(2)))
+        if not hits:
+            return self.ok("no Xid errors")
+        idx = hits[0][0]
+        xids = ",".join(sorted({x for _, x in hits}))
+        return self.fail(
+            f"Xid {xids} on gpu:{idx}",
+            scope=f"gpu:{idx}",
+            evidence={"xids": hits},
+        )
+
+
+@register
+class GpuNvlink(Module):
+    spec = spec("G6")
+
+    def run(self, ctx: Context) -> ModuleResult:
+        text = ctx.collect("nvidia_smi_nvlink").strip()
+        if not text or "not supported" in text.lower() or text.startswith("("):
+            return self.na("NVLink not supported on this GPU")
+        if re.search(r"inactive|down", text, re.IGNORECASE):
+            return self.fail("NVLink reports an inactive/down link")
+        return self.ok("NVLink links active")
+
+
+@register
+class GpuThermal(Module):
+    spec = spec("G7")
+
+    def run(self, ctx: Context) -> ModuleResult:
+        rows = _parse_gpu_query(ctx.collect("gpu_query"))
+        temps = [(r["index"], r["temp"]) for r in rows if r["temp"] is not None]
+        if not temps:
+            return self.na("no temperature data")
+        hottest_idx, hottest = max(temps, key=lambda t: t[1])
+        if hottest >= _TEMP_FAIL:
+            return self.fail(
+                f"gpu:{hottest_idx} at {hottest}°C (>= {_TEMP_FAIL})",
+                scope=f"gpu:{hottest_idx}",
+                evidence={"max_temp": hottest},
+            )
+        if hottest >= _TEMP_WARN:
+            return self.warn(
+                f"gpu:{hottest_idx} at {hottest}°C (>= {_TEMP_WARN})",
+                scope=f"gpu:{hottest_idx}",
+                evidence={"max_temp": hottest},
+            )
+        return self.ok(f"all GPUs <= {hottest}°C", evidence={"max_temp": hottest})

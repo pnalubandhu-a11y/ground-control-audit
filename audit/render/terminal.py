@@ -11,6 +11,7 @@ import sys
 
 from ..core.catalog import H100, ModuleSpec
 from ..core import registry
+from ..core.result import ModuleResult, Status, Verdict
 
 _GROUP_TITLES = {
     "A": "host / NIC / system",
@@ -87,3 +88,75 @@ def render_list(stream=None) -> str:
 def print_list(stream=None) -> None:
     stream = stream or sys.stdout
     print(render_list(stream), file=stream)
+
+
+# --- run output -------------------------------------------------------------
+
+_STATUS_COLOR = {
+    Status.PASS: _GREEN,
+    Status.WARN: _YELLOW,
+    Status.FAIL: _RED,
+    Status.SKIP: _DIM,
+    Status.NA: _DIM,
+    Status.ERROR: _RED,
+}
+
+
+def render_run(
+    results: list[ModuleResult],
+    verdicts: list[Verdict],
+    *,
+    show_verdict: bool = True,
+    stream=None,
+) -> str:
+    """Render a run: verdict banner (if any) on top, then per-module lines."""
+    stream = stream or sys.stdout
+    paint = _Paint(_color_enabled(stream))
+    lines: list[str] = []
+
+    if show_verdict and verdicts:
+        for v in verdicts:
+            banner = f"  🔴 VERDICT: {v.verdict}   [confidence: {v.confidence}]"
+            lines.append(paint(banner, _BOLD + _RED))
+        lines.append("")
+
+    for r in results:
+        code = _STATUS_COLOR.get(r.status, "")
+        tag = paint(f"{str(r.status):<5}", code)
+        summary = r.summary or ""
+        lines.append(f"  {r.id:<4} {r.name:<32} {tag} {summary}")
+
+    counts = _tally(results)
+    lines.append("")
+    summary = (
+        f"{counts[Status.PASS]} pass · {counts[Status.WARN]} warn · "
+        f"{counts[Status.FAIL]} fail · {counts[Status.NA]} na · "
+        f"{counts[Status.SKIP]} skip"
+    )
+    if counts[Status.ERROR]:
+        summary += f" · {counts[Status.ERROR]} error"
+    lines.append(paint(summary, _DIM))
+    return "\n".join(lines)
+
+
+def print_run(results, verdicts, *, show_verdict=True, stream=None) -> None:
+    stream = stream or sys.stdout
+    print(render_run(results, verdicts, show_verdict=show_verdict, stream=stream),
+          file=stream)
+
+
+def _tally(results: list[ModuleResult]) -> dict:
+    counts = {s: 0 for s in Status}
+    for r in results:
+        counts[r.status] += 1
+    return counts
+
+
+def exit_code(results: list[ModuleResult]) -> int:
+    """0 all pass · 1 warnings · 2 failures/errors (DESIGN §4)."""
+    statuses = {r.status for r in results}
+    if statuses & {Status.FAIL, Status.ERROR}:
+        return 2
+    if Status.WARN in statuses:
+        return 1
+    return 0

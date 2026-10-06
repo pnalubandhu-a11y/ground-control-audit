@@ -1,0 +1,9 @@
+index, name, pci.bus_id, temperature.gpu, ecc.errors.uncorrected.aggregate.total, ecc.errors.corrected.aggregate.total
+0, NVIDIA RTX PRO 6000 Blackwell Server Edition, 00000000:20:00.0, 30, 0, 0
+1, NVIDIA RTX PRO 6000 Blackwell Server Edition, 00000000:21:00.0, 28, 0, 0
+2, NVIDIA RTX PRO 6000 Blackwell Server Edition, 00000000:45:00.0, 27, 0, 0
+3, NVIDIA RTX PRO 6000 Blackwell Server Edition, 00000000:46:00.0, 28, 0, 0
+4, NVIDIA RTX PRO 6000 Blackwell Server Edition, 00000000:AD:00.0, 29, 0, 0
+5, NVIDIA RTX PRO 6000 Blackwell Server Edition, 00000000:AE:00.0, 29, 0, 0
+6, NVIDIA RTX PRO 6000 Blackwell Server Edition, 00000000:C0:00.0, 28, 0, 0
+7, NVIDIA RTX PRO 6000 Blackwell Server Edition, 00000000:C1:00.0, 29, 0, 0

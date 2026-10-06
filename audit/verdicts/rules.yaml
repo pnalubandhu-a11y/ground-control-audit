@@ -1,0 +1,12 @@
+# Verdict correlation rules (DESIGN.md §6). Data, not code.
+# A rule fires when ALL its conditions match module results that share the same
+# scope. {scope} is substituted into the verdict sentence.
+- id: gpu_fault_degrade
+  when:
+    all:
+      - {module: G5, status: [FAIL]}            # XID errors
+      - {module: G3, status: [WARN, FAIL]}      # ECC errors
+    same_scope: gpu                              # both on the same gpu:N
+  verdict: "Failing GPU {scope} (XID + ECC) — cordon the node and open an RMA."
+  confidence: high
+  severity: 3
