@@ -1,0 +1,8 @@
+# SYNTHESIZED: `ip rule show` — pod has no iproute2 / host netns. Realistic
+# per-NIC policy routing for multi-NIC RDMA (one source-routing rule per data NIC).
+0:	from all lookup local
+32756:	from 10.0.1.69 lookup rt_eth0
+32757:	from 10.0.2.10 lookup rt_ibp0
+32758:	from 10.0.2.11 lookup rt_ibp1
+32766:	from all lookup main
+32767:	from all lookup default

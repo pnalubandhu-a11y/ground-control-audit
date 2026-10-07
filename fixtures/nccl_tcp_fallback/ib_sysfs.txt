@@ -1,0 +1,181 @@
+# REAL device/state/rate from cw0bec (mlx5_0..8, ConnectX-7 EDR); counters=0 baseline (counters subdir not exposed in-container)
+### mlx5_0
+fw_ver: 32.43.4100
+hca_type: MT41692
+board_id: MT_0000000884
+state: 4: ACTIVE
+phys_state: 5: LinkUp
+rate: 100 Gb/sec (4X EDR)
+counters.symbol_error: 0
+counters.port_rcv_errors: 0
+counters.port_rcv_remote_physical_errors: 0
+counters.link_downed: 0
+counters.link_error_recovery: 0
+counters.local_link_integrity_errors: 0
+counters.port_xmit_wait: 0
+hw_counters.np_cnp_sent: 0
+hw_counters.np_ecn_marked_roce_packets: 0
+hw_counters.rp_cnp_handled: 0
+hw_counters.out_of_sequence: 0
+hw_counters.packet_seq_err: 0
+hw_counters.local_ack_timeout_err: 0
+### mlx5_1
+fw_ver: 32.43.4100
+hca_type: MT4126
+board_id: MT_0000000884
+state: 4: ACTIVE
+phys_state: 5: LinkUp
+rate: 100 Gb/sec (4X EDR)
+counters.symbol_error: 0
+counters.port_rcv_errors: 0
+counters.port_rcv_remote_physical_errors: 0
+counters.link_downed: 0
+counters.link_error_recovery: 0
+counters.local_link_integrity_errors: 0
+counters.port_xmit_wait: 0
+hw_counters.np_cnp_sent: 0
+hw_counters.np_ecn_marked_roce_packets: 0
+hw_counters.rp_cnp_handled: 0
+hw_counters.out_of_sequence: 0
+hw_counters.packet_seq_err: 0
+hw_counters.local_ack_timeout_err: 0
+### mlx5_2
+fw_ver: 32.43.4100
+hca_type: MT4126
+board_id: MT_0000000884
+state: 4: ACTIVE
+phys_state: 5: LinkUp
+rate: 100 Gb/sec (4X EDR)
+counters.symbol_error: 0
+counters.port_rcv_errors: 0
+counters.port_rcv_remote_physical_errors: 0
+counters.link_downed: 0
+counters.link_error_recovery: 0
+counters.local_link_integrity_errors: 0
+counters.port_xmit_wait: 0
+hw_counters.np_cnp_sent: 0
+hw_counters.np_ecn_marked_roce_packets: 0
+hw_counters.rp_cnp_handled: 0
+hw_counters.out_of_sequence: 0
+hw_counters.packet_seq_err: 0
+hw_counters.local_ack_timeout_err: 0
+### mlx5_3
+fw_ver: 32.43.4100
+hca_type: MT4126
+board_id: MT_0000000884
+state: 4: ACTIVE
+phys_state: 5: LinkUp
+rate: 100 Gb/sec (4X EDR)
+counters.symbol_error: 0
+counters.port_rcv_errors: 0
+counters.port_rcv_remote_physical_errors: 0
+counters.link_downed: 0
+counters.link_error_recovery: 0
+counters.local_link_integrity_errors: 0
+counters.port_xmit_wait: 0
+hw_counters.np_cnp_sent: 0
+hw_counters.np_ecn_marked_roce_packets: 0
+hw_counters.rp_cnp_handled: 0
+hw_counters.out_of_sequence: 0
+hw_counters.packet_seq_err: 0
+hw_counters.local_ack_timeout_err: 0
+### mlx5_4
+fw_ver: 32.43.4100
+hca_type: MT4126
+board_id: MT_0000000884
+state: 4: ACTIVE
+phys_state: 5: LinkUp
+rate: 100 Gb/sec (4X EDR)
+counters.symbol_error: 0
+counters.port_rcv_errors: 0
+counters.port_rcv_remote_physical_errors: 0
+counters.link_downed: 0
+counters.link_error_recovery: 0
+counters.local_link_integrity_errors: 0
+counters.port_xmit_wait: 0
+hw_counters.np_cnp_sent: 0
+hw_counters.np_ecn_marked_roce_packets: 0
+hw_counters.rp_cnp_handled: 0
+hw_counters.out_of_sequence: 0
+hw_counters.packet_seq_err: 0
+hw_counters.local_ack_timeout_err: 0
+### mlx5_5
+fw_ver: 32.43.4100
+hca_type: MT4126
+board_id: MT_0000000884
+state: 4: ACTIVE
+phys_state: 5: LinkUp
+rate: 100 Gb/sec (4X EDR)
+counters.symbol_error: 0
+counters.port_rcv_errors: 0
+counters.port_rcv_remote_physical_errors: 0
+counters.link_downed: 0
+counters.link_error_recovery: 0
+counters.local_link_integrity_errors: 0
+counters.port_xmit_wait: 0
+hw_counters.np_cnp_sent: 0
+hw_counters.np_ecn_marked_roce_packets: 0
+hw_counters.rp_cnp_handled: 0
+hw_counters.out_of_sequence: 0
+hw_counters.packet_seq_err: 0
+hw_counters.local_ack_timeout_err: 0
+### mlx5_6
+fw_ver: 32.43.4100
+hca_type: MT4126
+board_id: MT_0000000884
+state: 4: ACTIVE
+phys_state: 5: LinkUp
+rate: 100 Gb/sec (4X EDR)
+counters.symbol_error: 0
+counters.port_rcv_errors: 0
+counters.port_rcv_remote_physical_errors: 0
+counters.link_downed: 0
+counters.link_error_recovery: 0
+counters.local_link_integrity_errors: 0
+counters.port_xmit_wait: 0
+hw_counters.np_cnp_sent: 0
+hw_counters.np_ecn_marked_roce_packets: 0
+hw_counters.rp_cnp_handled: 0
+hw_counters.out_of_sequence: 0
+hw_counters.packet_seq_err: 0
+hw_counters.local_ack_timeout_err: 0
+### mlx5_7
+fw_ver: 32.43.4100
+hca_type: MT4126
+board_id: MT_0000000884
+state: 4: ACTIVE
+phys_state: 5: LinkUp
+rate: 100 Gb/sec (4X EDR)
+counters.symbol_error: 0
+counters.port_rcv_errors: 0
+counters.port_rcv_remote_physical_errors: 0
+counters.link_downed: 0
+counters.link_error_recovery: 0
+counters.local_link_integrity_errors: 0
+counters.port_xmit_wait: 0
+hw_counters.np_cnp_sent: 0
+hw_counters.np_ecn_marked_roce_packets: 0
+hw_counters.rp_cnp_handled: 0
+hw_counters.out_of_sequence: 0
+hw_counters.packet_seq_err: 0
+hw_counters.local_ack_timeout_err: 0
+### mlx5_8
+fw_ver: 32.43.4100
+hca_type: MT4126
+board_id: MT_0000000884
+state: 4: ACTIVE
+phys_state: 5: LinkUp
+rate: 100 Gb/sec (4X EDR)
+counters.symbol_error: 0
+counters.port_rcv_errors: 0
+counters.port_rcv_remote_physical_errors: 0
+counters.link_downed: 0
+counters.link_error_recovery: 0
+counters.local_link_integrity_errors: 0
+counters.port_xmit_wait: 0
+hw_counters.np_cnp_sent: 0
+hw_counters.np_ecn_marked_roce_packets: 0
+hw_counters.rp_cnp_handled: 0
+hw_counters.out_of_sequence: 0
+hw_counters.packet_seq_err: 0
+hw_counters.local_ack_timeout_err: 0
