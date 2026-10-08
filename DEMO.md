@@ -17,8 +17,18 @@ drops color by design.
 Optional sanity check right before you go on:
 
 ```bash
-./.venv/bin/pytest -q          # expect: 89 passed
+./.venv/bin/pytest -q          # expect: 91 passed
 ```
+
+## Fastest path: the guided script
+
+```bash
+./demo.sh            # press Enter to advance through each beat (talking points on screen)
+./demo.sh --auto     # no pauses — for a rehearsal or screen recording
+```
+
+The script runs all 8 beats below with banners + the "Say" line for each, so you
+don't type anything live. The manual commands follow if you'd rather drive by hand.
 
 ---
 
