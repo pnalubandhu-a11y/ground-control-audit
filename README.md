@@ -74,6 +74,7 @@ Modules are grouped **A** (host/NIC/system), **B** (link/RDMA physical),
 
 📄 **[DESIGN.md](./DESIGN.md)** — full catalog, module contract, architecture.
 🚀 **[ROADMAP.md](./ROADMAP.md)** — the 3-year moonshot, phased plan, and exact 24-hour MVP scope.
+🎬 **[DEMO.md](./DEMO.md)** — the 7-beat demo runbook (exact commands + talking points).
 
 ---
 
