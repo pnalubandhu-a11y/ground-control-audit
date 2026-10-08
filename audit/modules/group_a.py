@@ -58,9 +58,18 @@ class MtuAlignment(Module):
 
     def run(self, ctx: Context) -> ModuleResult:
         ifaces = _blocks(ctx.collect("net_links"))
-        mtus = {i: int(f.get("mtu", "0") or 0) for i, f in ifaces.items()}
+        # Only consider NICs that actually report a numeric MTU; a blank/missing
+        # value must not masquerade as 0 and trip a false mismatch.
+        mtus: dict[str, int] = {}
+        for i, f in ifaces.items():
+            try:
+                v = int(f.get("mtu", "") or 0)
+            except ValueError:
+                v = 0
+            if v > 0:
+                mtus[i] = v
         if not mtus:
-            return self.na("no NICs visible")
+            return self.na("no NICs with an MTU visible")
         distinct = set(mtus.values())
         if len(distinct) > 1:
             return self.fail(

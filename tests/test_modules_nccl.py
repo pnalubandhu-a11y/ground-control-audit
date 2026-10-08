@@ -41,8 +41,6 @@ def test_n1_fail_on_tcp_fallback(fallback):
 
 
 def test_n1_na_without_log():
-    import io
-
     ctx = Context(mode="fixture", fixture_dir=NCCL_OK)
     ctx._cache["nccl_log"] = ""  # simulate empty log
     assert get_impl("N1").run(ctx).status is Status.NA

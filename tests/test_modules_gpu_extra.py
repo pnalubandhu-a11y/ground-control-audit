@@ -46,6 +46,12 @@ def test_g9_pass_when_fabric_completed():
     assert get_impl("G9").run(_ctx(nvidia_smi_q=q)).status is Status.PASS
 
 
+def test_g9_fails_when_fabric_in_progress():
+    # multi-word state must not be truncated to "In" and whitelisted
+    q = "GPU 00000000:20:00.0\n    Fabric\n        State : In Progress\n"
+    assert get_impl("G9").run(_ctx(nvidia_smi_q=q)).status is Status.FAIL
+
+
 def test_preflight_fully_implemented(healthy):
     # No module in preflight should be SKIP anymore.
     results = run_modules(resolve_bundle("preflight"), healthy)

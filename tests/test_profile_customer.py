@@ -37,6 +37,13 @@ def test_redact_keeps_device_scopes():
     assert redact_text("gpu:3 mlx5_4 eth1") == "gpu:3 mlx5_4 eth1"
 
 
+def test_redact_recurses_into_tuples_and_lists():
+    from audit.core.redact import _redact_obj
+    out = _redact_obj({"hosts": [("a", "h100-233-129")], "ip": "10.0.1.69"})
+    assert out["hosts"] == [("a", "<host>")]   # tuple contents masked
+    assert out["ip"] == "<ip>"
+
+
 # --- read-only enforcement --------------------------------------------------
 
 def test_customer_blocks_active_even_with_allow_active():

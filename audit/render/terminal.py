@@ -130,9 +130,10 @@ def render_run(
         results = [redact_result(r) for r in results]
         verdicts = [redact_verdict(v) for v in verdicts]
 
-    if profile and profile.name != "internal":
-        lines.append(paint(
-            f"  profile: {profile.name} (read-only, identifiers redacted)", _DIM))
+    if profile and (profile.enforce_readonly or profile.redact):
+        bits = (["read-only"] if profile.enforce_readonly else []) + \
+               (["identifiers redacted"] if profile.redact else [])
+        lines.append(paint(f"  profile: {profile.name} ({', '.join(bits)})", _DIM))
         lines.append("")
 
     if show_verdict and verdicts:

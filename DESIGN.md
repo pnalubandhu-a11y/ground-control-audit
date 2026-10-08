@@ -283,6 +283,13 @@ OCI tool).
 
 ## 8. Repository layout
 
+This is the **target** layout. Two deltas in the shipped build: platform
+detection is folded into `runner.py` (a module whose `requires` aren't in the
+Context capability set returns `NA`) rather than a separate `platform_detect.py`;
+and `group_c.py` (the C-group fabric/cluster modules) is future work — the
+shipped groups are A, B, G, plus an `N` NCCL extension. Everything else below
+exists as shown.
+
 ```
 hackathon/audit/
 ├── pyproject.toml
@@ -291,17 +298,20 @@ hackathon/audit/
 ├── audit/
 │   ├── cli.py                # argparse entrypoint
 │   ├── core/
+│   │   ├── catalog.py        # the 51 reference modules (+ N extensions)
 │   │   ├── registry.py       # module + bundle registry
 │   │   ├── result.py         # ModuleResult, Status, Verdict
-│   │   ├── runner.py         # parallel execution, timeouts
-│   │   ├── context.py        # host capabilities, cached probes
-│   │   ├── platform_detect.py
+│   │   ├── runner.py         # execution + platform detection (requires→NA)
+│   │   ├── context.py        # host capabilities, cached probes, fixture mode
+│   │   ├── profile.py        # internal / customer / support
+│   │   ├── nodes.py          # --nodes range expansion
 │   │   └── redact.py         # profile-based redaction
 │   ├── modules/
+│   │   ├── base.py           # Module contract + impl registry
 │   │   ├── group_a.py
 │   │   ├── group_b.py
-│   │   ├── group_c.py
-│   │   └── group_g.py
+│   │   ├── group_g.py
+│   │   └── group_n.py        # NCCL extension (group_c.py = future)
 │   ├── verdicts/
 │   │   ├── engine.py
 │   │   └── rules.yaml

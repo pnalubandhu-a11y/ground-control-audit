@@ -9,7 +9,7 @@ from __future__ import annotations
 import re
 
 from ..core.context import Context
-from ..core.result import ModuleResult, Status
+from ..core.result import ModuleResult
 from .base import Module, register, spec
 
 # Thermal thresholds (°C). Blackwell/H100 throttle well above these.
@@ -202,12 +202,14 @@ class GpuFabricManager(Module):
             return self.na("no nvidia-smi -q output")
         states = []
         for b in blocks:
-            m = re.search(r"Fabric\b[^\n]*\n\s*State\s*:\s*(\S+)", b)
+            m = re.search(r"Fabric\b[^\n]*\n\s*State\s*:\s*([^\n]+)", b)
             if m:
-                states.append(m.group(1))
+                states.append(m.group(1).strip())
         if not states or all(s.upper() in {"N/A", "NA"} for s in states):
             return self.na("no NVSwitch fabric (Fabric Manager not applicable)")
-        bad = [s for s in states if s not in {"Completed", "In", "Completed."}]
+        # On a ready node every GPU's fabric registration is "Completed";
+        # anything else (incl. "In Progress") means the fabric isn't ready.
+        bad = [s for s in states if s != "Completed"]
         if bad:
             return self.fail(f"Fabric Manager not ready: {sorted(set(bad))}")
         return self.ok(f"Fabric Manager ready ({len(states)} GPUs)")

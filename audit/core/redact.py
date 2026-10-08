@@ -54,6 +54,6 @@ def _redact_obj(obj):
         return redact_text(obj)
     if isinstance(obj, dict):
         return {k: _redact_obj(v) for k, v in obj.items()}
-    if isinstance(obj, list):
-        return [_redact_obj(v) for v in obj]
+    if isinstance(obj, (list, tuple)):
+        return type(obj)(_redact_obj(v) for v in obj)
     return obj
