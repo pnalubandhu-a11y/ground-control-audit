@@ -1,6 +1,6 @@
 # 🛰️ Ground Control — Demo Runbook
 
-The exact 7-beat sequence for judging. **Fixtures-first: every command below
+The exact 8-beat sequence for judging. **Fixtures-first: every command below
 works with zero cluster access**, so a flaky network can't break the demo.
 
 ## Setup (once, before you present)
@@ -27,8 +27,9 @@ Optional sanity check right before you go on:
 ./demo.sh --auto     # no pauses — for a rehearsal or screen recording
 ```
 
-The script runs all 8 beats below with banners + the "Say" line for each, so you
-don't type anything live. The manual commands follow if you'd rather drive by hand.
+The script runs the non-interactive beats (1–7) below with banners + the "Say"
+line for each, so you don't type anything live. The manual commands follow if
+you'd rather drive by hand. Beat 8 (the menu) is interactive — run it by hand.
 
 ---
 
@@ -127,6 +128,22 @@ tar tzf audit-bundle-*.tar.gz | head        # result.json + evidence/
 
 **Say:** For support, the same run emits structured JSON for pipelines and a
 `audit-bundle-*.tar.gz` (result + raw evidence, redacted) to attach to a ticket.
+
+---
+
+## Beat 8 — Customer self-serve: the troubleshooting menu
+
+```bash
+audit --profile customer --fixture fixtures/nccl_tcp_fallback
+# then type:  1   (training run is slow)   →  read the verdict   →  q  to quit
+```
+
+**Say:** Same engine, nothing to memorize. A customer just runs `audit`, picks the
+symptom they're seeing in plain English, and gets the same redacted root-cause
+verdict + fix — read-only, no bundle names or cluster knowledge required. On a
+real node, bare `audit` opens this menu live; `--fixture` makes it reproducible
+offline. _Interactive — drive this beat by hand; it's not part of
+`./demo.sh --auto`._
 
 ---
 

@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from . import __version__
+from . import menu
 from .core import registry
 from .core.catalog import ModuleSpec
 from .core.context import Context
@@ -104,6 +105,16 @@ def _fanout(specs, args, profile: Profile) -> int:
     return worst
 
 
+def _launch_menu(args, profile: Profile) -> int:
+    """Interactive symptom picker; each choice runs a bundle via the normal path."""
+    def run_bundle(name: str) -> int:
+        specs = registry.resolve_bundle(name)
+        ctx = (Context(mode="fixture", fixture_dir=args.fixture) if args.fixture
+               else Context(mode="live"))
+        return _run_one(specs, ctx, args, profile, label="host")
+    return menu.run_menu(run_bundle, out=sys.stdout)
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
 
@@ -118,6 +129,10 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     if specs is None:
+        # No modules/bundle chosen: open the troubleshooting menu on an
+        # interactive terminal; otherwise fall back to help (keeps pipes/CI safe).
+        if sys.stdin.isatty() and not args.json:
+            return _launch_menu(args, get_profile(args.profile))
         build_parser().print_help()
         return 0
 
