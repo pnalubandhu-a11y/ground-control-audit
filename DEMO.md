@@ -135,7 +135,7 @@ tar tzf audit-bundle-*.tar.gz | head        # result.json + evidence/
 > We declared a 3-year moon — an autonomous, predictive, fleet-scale GPU-fabric
 > flight director — and in the hackathon we landed the vertical slice that proves
 > it: **real checks on real CoreWeave hardware, correlated into root-cause
-> verdicts a human acts on in 30 seconds.** 89 tests, three audiences, runs
+> verdicts a human acts on in 30 seconds.** 91 tests, three audiences, runs
 > anywhere. Everything above it is depth on the same spine.
 
 ---

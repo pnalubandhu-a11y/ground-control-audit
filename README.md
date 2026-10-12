@@ -85,7 +85,7 @@ Modules are grouped **A** (host/NIC/system), **B** (link/RDMA physical),
 | Design | ✅ [DESIGN.md](./DESIGN.md) |
 | Verdict engine | Rules engine, marquee rules |
 | Demo target | CoreWeave `cw0bec` cluster — RTX PRO 6000 Blackwell (fixtures-first) |
-| Code | 🚧 In progress |
+| Code | ✅ 91 tests passing |
 
 ---
 
