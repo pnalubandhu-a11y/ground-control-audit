@@ -1,15 +1,16 @@
 """Interactive customer troubleshooting menu.
 
-A plain-English symptom picker over the existing use-case bundles. The caller
-injects a ``run_bundle`` callback (bundle name -> exit code) so this module
-stays decoupled from the runner and is trivially testable.
+A plain-English symptom picker over the existing use-case bundles, plus a
+post-verdict action menu. The caller injects a ``run_bundle`` callback
+(bundle name -> RunOutcome) so this module stays decoupled from the runner
+and is trivially testable.
 """
 
 from __future__ import annotations
 
 import sys
 from collections.abc import Callable
-from typing import TextIO
+from typing import Protocol, TextIO
 
 # Symptom (what the customer sees) -> existing bundle name. Data only.
 SYMPTOMS: list[tuple[str, str]] = [
@@ -21,6 +22,14 @@ SYMPTOMS: list[tuple[str, str]] = [
 ]
 
 _QUIT = {"q", "quit", "exit"}
+_BACK = {"", "b", "back"}
+
+
+class RunOutcome(Protocol):
+    """What a completed run exposes to the action menu."""
+    exit_code: int
+    def support_bundle(self) -> str: ...   # write tarball, return its path
+    def evidence(self) -> str: ...         # rendered per-module evidence
 
 
 def _render(out: TextIO) -> None:
@@ -30,8 +39,30 @@ def _render(out: TextIO) -> None:
     out.write("  q) quit\n\n")
 
 
+def _action_menu(outcome: RunOutcome, input_fn: Callable[[str], str],
+                 out: TextIO) -> None:
+    """After a run, offer support-bundle / evidence; loop until the user goes back."""
+    while True:
+        out.write("\n  [s] package for support   [v] show evidence   "
+                  "[Enter] back to menu\n")
+        try:
+            action = input_fn("action> ").strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            return
+
+        if action in _BACK:
+            return
+        if action == "s":
+            path = outcome.support_bundle()
+            out.write(f"\n  ✓ wrote {path}\n")
+        elif action == "v":
+            out.write("\n" + outcome.evidence() + "\n")
+        else:
+            out.write(f"  '{action}' is not an option. Pick [s], [v], or Enter.\n")
+
+
 def run_menu(
-    run_bundle: Callable[[str], int],
+    run_bundle: Callable[[str], RunOutcome],
     *,
     input_fn: Callable[[str], str] = input,
     out: TextIO = sys.stdout,
@@ -54,7 +85,9 @@ def run_menu(
 
         if choice.isdigit() and 1 <= int(choice) <= len(SYMPTOMS):
             _label, bundle = SYMPTOMS[int(choice) - 1]
-            worst = max(worst, run_bundle(bundle))
+            outcome = run_bundle(bundle)
+            worst = max(worst, outcome.exit_code)
+            _action_menu(outcome, input_fn, out)
             continue
 
         out.write(f"'{choice}' is not a valid choice. "

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -67,8 +68,8 @@ def _timestamp() -> str:
     return datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 
 
-def _run_one(specs, ctx, args, profile: Profile, *, label: str) -> int:
-    """Run one node's modules, render, optionally bundle. Return its exit code."""
+def _execute(specs, ctx, args, profile: Profile):
+    """Run modules and render output. Return (results, verdicts)."""
     results = run_modules(specs, ctx, allow_active=args.allow_active, profile=profile)
     verdicts = evaluate(results)
     if args.json:
@@ -76,6 +77,12 @@ def _run_one(specs, ctx, args, profile: Profile, *, label: str) -> int:
     else:
         terminal.print_run(results, verdicts, show_verdict=not args.no_verdict,
                            profile=profile, verbose=args.verbose)
+    return results, verdicts
+
+
+def _run_one(specs, ctx, args, profile: Profile, *, label: str) -> int:
+    """Run one node's modules, render, optionally bundle. Return its exit code."""
+    results, verdicts = _execute(specs, ctx, args, profile)
     if args.bundle:
         path = bundle.write_bundle(results, verdicts, ctx, profile=profile,
                                    timestamp=_timestamp(), label=label)
@@ -105,13 +112,33 @@ def _fanout(specs, args, profile: Profile) -> int:
     return worst
 
 
+@dataclass
+class _MenuOutcome:
+    """One menu run; backs the post-verdict [s]/[v] actions."""
+    exit_code: int
+    results: list
+    verdicts: list
+    ctx: Context
+    profile: Profile
+
+    def support_bundle(self) -> str:
+        return bundle.write_bundle(self.results, self.verdicts, self.ctx,
+                                   profile=self.profile, timestamp=_timestamp(),
+                                   label="host")
+
+    def evidence(self) -> str:
+        return terminal.render_run(self.results, self.verdicts, show_verdict=False,
+                                   profile=self.profile, verbose=True)
+
+
 def _launch_menu(args, profile: Profile) -> int:
     """Interactive symptom picker; each choice runs a bundle via the normal path."""
-    def run_bundle(name: str) -> int:
+    def run_bundle(name: str) -> _MenuOutcome:
         specs = registry.resolve_bundle(name)
         ctx = (Context(mode="fixture", fixture_dir=args.fixture) if args.fixture
                else Context(mode="live"))
-        return _run_one(specs, ctx, args, profile, label="host")
+        results, verdicts = _execute(specs, ctx, args, profile)
+        return _MenuOutcome(terminal.exit_code(results), results, verdicts, ctx, profile)
     return menu.run_menu(run_bundle, out=sys.stdout)
 
 

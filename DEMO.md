@@ -135,14 +135,18 @@ tar tzf audit-bundle-*.tar.gz | head        # result.json + evidence/
 
 ```bash
 audit --profile customer --fixture fixtures/nccl_tcp_fallback
-# then type:  1   (training run is slow)   →  read the verdict   →  q  to quit
+#  1   training run is slow   →  read the redacted verdict
+#  s   package for support    →  writes audit-bundle-*.tar.gz to attach to a ticket
+#  v   show evidence   ·   Enter  back to menu   ·   q  quit
 ```
 
 **Say:** Same engine, nothing to memorize. A customer just runs `audit`, picks the
-symptom they're seeing in plain English, and gets the same redacted root-cause
-verdict + fix — read-only, no bundle names or cluster knowledge required. On a
-real node, bare `audit` opens this menu live; `--fixture` makes it reproducible
-offline. _Interactive — drive this beat by hand; it's not part of
+symptom in plain English, and gets the same redacted root-cause verdict + fix —
+read-only, no bundle names or cluster knowledge required. Then the payoff: **one
+keypress (`s`) packages that exact run into a support bundle** to hand to
+CoreWeave — self-diagnose straight into a support handoff, all three audiences in
+one flow. On a real node, bare `audit` opens this menu live; `--fixture` makes it
+reproducible offline. _Interactive — drive this beat by hand; it's not part of
 `./demo.sh --auto`._
 
 ---
@@ -152,7 +156,7 @@ offline. _Interactive — drive this beat by hand; it's not part of
 > We declared a 3-year moon — an autonomous, predictive, fleet-scale GPU-fabric
 > flight director — and in the hackathon we landed the vertical slice that proves
 > it: **real checks on real CoreWeave hardware, correlated into root-cause
-> verdicts a human acts on in 30 seconds.** 91 tests, three audiences, runs
+> verdicts a human acts on in 30 seconds.** 103 tests, three audiences, runs
 > anywhere. Everything above it is depth on the same spine.
 
 ---
