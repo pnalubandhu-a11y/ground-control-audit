@@ -1,0 +1,88 @@
+===========================================================================
+  GROUND CONTROL - DEMO VIDEO TELEPROMPTER   (target: under 3:00)
+  Record a real terminal + mic. Run:  ./demo.sh --video
+  Rehearse pacing first with:         ./demo.sh --video --auto
+===========================================================================
+
+
+---------------------------------------------------------------------------
+[ 0:00 - 0:15 ]   PROBLEM        (title card / empty terminal)
+---------------------------------------------------------------------------
+
+   "When a training run stalls on a GPU cluster, an engineer burns HOURS
+    correlating nvidia-smi, ibstat, NCCL logs, and sysfs counters across
+    nodes to find the one bad GPU or dead rail.
+    Ground Control does it in one command."
+
+
+---------------------------------------------------------------------------
+[ 0:15 - 0:35 ]   IT KNOWS THE CHECKS + A HEALTHY NODE
+   run:  audit -l
+   run:  audit -u preflight --fixture fixtures/cw0bec_blackwell_healthy
+---------------------------------------------------------------------------
+
+   "51 checks in four groups, and it AUTO-DETECTS the platform.
+    Here's a REAL CoreWeave Blackwell node - 17 checks, all green.
+    Exit 0, so it drops straight into a CI or preflight gate."
+
+
+---------------------------------------------------------------------------
+[ 0:35 - 1:15 ]   THE HEADLINE: NCCL SILENTLY ON TCP
+   run:  audit -u nccl_slow --fixture fixtures/nccl_tcp_fallback
+---------------------------------------------------------------------------
+
+   "These are REAL NCCL logs. One bad env var silently dropped NCCL from
+    RDMA to TCP sockets - about a 100x bandwidth collapse that just looks
+    like 'the cluster is slow.'
+    Instead of a wall of counters, the VERDICT ENGINE names the root cause
+    and the exact fix. This is the moonshot: correlation, not just checks."
+
+
+---------------------------------------------------------------------------
+[ 1:15 - 1:40 ]   A FAILING GPU, ONE ROOT CAUSE
+   run:  audit -u gpu_fault --fixture fixtures/synth_gpu_fault
+---------------------------------------------------------------------------
+
+   "It generalizes. Three raw signals on the SAME GPU - XID errors,
+    uncorrectable ECC, 91 degrees - collapse into ONE verdict:
+    cordon the node and RMA the GPU."
+
+
+---------------------------------------------------------------------------
+[ 1:40 - 2:20 ]   CUSTOMER SELF-SERVE + SUPPORT HANDOFF
+   run:  audit --profile customer --fixture fixtures/nccl_tcp_fallback
+   then type:  1    (training slow)
+   then type:  s    (writes support bundle)
+   then:  Enter  ... then  q
+---------------------------------------------------------------------------
+
+   "Same engine, three audiences. A CUSTOMER runs audit, picks a symptom
+    in plain English - no flags, no bundle names - and gets the REDACTED
+    root cause and fix.
+    Then the payoff: one keypress, 's', packages that exact run into a
+    support bundle to hand to CoreWeave. Self-diagnose straight into a
+    support handoff."
+
+
+---------------------------------------------------------------------------
+[ 2:20 - 2:45 ]   IMPACT        (verdict still on screen)
+---------------------------------------------------------------------------
+
+   "That collapses a multi-hour war-room into 30 SECONDS. On clusters where
+    idle GPU-hours cost thousands per hour, faster diagnosis is real money -
+    and it moves tier-1 triage from the support queue to self-serve."
+
+
+---------------------------------------------------------------------------
+[ 2:45 - 3:00 ]   MOONSHOT CLOSE    (close banner)
+---------------------------------------------------------------------------
+
+   "This is the WALKING SKELETON of a 3-year moon: an autonomous,
+    predictive, fleet-scale GPU-fabric flight director. Real checks on real
+    hardware, correlated into an action in 30 seconds. 103 tests, three
+    audiences, runs anywhere. Everything above it is depth on the same spine."
+
+
+===========================================================================
+  STOP RECORDING UNDER 3:00.  Export mp4 -> upload to the submission form.
+===========================================================================
