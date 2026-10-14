@@ -84,11 +84,62 @@ python3 -m venv .venv && ./.venv/bin/pip install -e ".[dev]"
 ./.venv/bin/pytest -q        # 103 passed
 ```
 
-**Team:** Prashanth Nalubandhu (Mission Commander), L. Sahu.
+**Team:** Prashanth Nalubandhu — Solutions Architect (Mission Commander); Lalit Sahu — Solutions Engineer.
 
 ---
 
-## 3. Pre-submission checklist
+## 3. Rubric self-assessment (4 × 25 = 100) + special awards
+
+Score each criterion independently; judges look for the evidence in the **video**.
+Make the narration say these out loud.
+
+| Criterion (25 pts) | Where the demo proves it | Honest self-score |
+|---|---|---|
+| **Speed / better ways of working** | Hours of manual `nvidia-smi`/`ibstat`/NCCL correlation → one named cause in 30s (Beats 3–4); customer self-serve menu + one-keypress support handoff (Beat 5/8). | **Strong (20)** |
+| **Business impact** | Recovers idle GPU-hours on stalled runs; deflects tier-1 tickets to self-serve; catches **customer-side config faults** (NCCL-on-TCP, MTU, IRQ) that fleet automation won't flag. Ties to fleet-reliability / GPU-utilization / support-efficiency OKRs. | **Good–Strong (15–20)** |
+| **Technical execution** | Module/verdict architecture, YAML-authored rules, **103 tests**, runs on a real `cw0bec` Blackwell capture, **deterministic (zero LLM inference at runtime)**. | **Strong (20)** |
+| **Presentation & clarity** | Problem → Solution → Prototype → Impact arc; tight 3-min cut; the "What you're watching" frame in DEMO.md. | **Strong (20)** |
+
+**Special awards (Yes/No — honest stances):**
+- **Most efficient token usage — strong YES to claim.** The product does its core
+  job — fault correlation — with **zero LLM tokens at runtime** (deterministic YAML
+  rules), so it delivers the impact with *no ongoing inference cost*. Contrast with
+  agentic tools that call a model per investigation. (AI was used to *build* it;
+  cite build-time token metrics if available.)
+- **Most OKRs — plausible YES.** Maps to GPU-fleet reliability/utilization, customer
+  experience, and support efficiency. *Confirm the exact CoreWeave OKRs you'll cite.*
+- **Cross-functional team — borderline; don't bank on it.** Team is **Prashanth
+  Nalubandhu (Solutions Architect)** + **Lalit Sahu (Solutions Engineer)** — distinct
+  roles (architecture vs. implementation/engineering) but both in the field/technical
+  org, so it's a soft case for a strict judge. State both titles honestly; treat any
+  Yes here as upside, not a given.
+
+## 4. How this differs from CoreWeave Mission Control
+
+Judges will know Mission Control — lead with the difference so this doesn't read as
+redundant. Mission Control is two things: (1) **platform fleet-automation** that
+auto-cordons / reboots / RMAs **CoreWeave-managed** nodes on *hardware* faults
+(ECC, XID, GPU-off-bus, IB link), and (2) the **Mission Control Agent/MCP** — an AI
+agent that answers GPU-health questions over telemetry.
+
+Ground Control is **complementary, not competing** (our roadmap Phase 2 feeds *into*
+Mission Control). The honest distinctions:
+
+| | CoreWeave Mission Control | Ground Control `audit` |
+|---|---|---|
+| **What it does** | *Acts* on the fleet — cordon / reboot / replace a bad node | *Explains* — one named root cause **+ the fix a human applies** |
+| **Fault scope** | Hardware faults CoreWeave owns | **Also customer-side config/workload faults** (NCCL-on-TCP, MTU, IRQ, env vars) that fleet automation deliberately won't touch |
+| **Audience** | CoreWeave platform + internal AI agent | **Three audiences** — ops, customer (redacted, self-serve menu), support (ticket bundle) |
+| **Portability** | CKS/SUNK **managed** nodes | A single portable CLI — runs on BMaaS, self-managed, non-CKS, **air-gapped** |
+| **AI cost** | MCP agent = tokens per investigation | **Deterministic, zero runtime tokens** |
+
+**One-liner for the video:** "Mission Control keeps the *fleet* healthy by pulling
+bad nodes; Ground Control tells a *human* — ops, customer, or support — the named
+root cause and the fix in 30 seconds, including the workload-config failures the
+fleet automation isn't responsible for. It's the last-mile diagnostic that feeds
+Mission Control."
+
+## 5. Pre-submission checklist
 - [ ] Record ≤3:00 video per the shot-list above
 - [ ] Paste project info into the form
 - [ ] Decide repo visibility — judges must be able to open the prototype link

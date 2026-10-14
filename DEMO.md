@@ -3,6 +3,30 @@
 The exact 8-beat sequence for judging. **Fixtures-first: every command below
 works with zero cluster access**, so a flaky network can't break the demo.
 
+## What you're watching
+
+**Ground Control (`audit`)** is a GPU-fabric & RDMA health checker for CoreWeave
+clusters. It runs 40+ host / network / GPU checks and — the differentiator — a
+**verdict engine** correlates the raw signals on a shared scope (same NIC / GPU /
+node) into a **named root cause with a 30-second fix**, instead of a wall of
+PASS/FAIL lines. The same binary serves **three audiences** through one
+`--profile` flag: `internal` (full detail), `customer` (read-only, redacted,
+plain-English fixes + a self-serve menu), and `support` (JSON + a ticket bundle).
+
+**The arc to watch** (what the rubric scores): **Problem** — diagnosing a stalled
+run is hours of manual correlation across ten terminals → **Solution** — one
+command returns one named cause with the fix → **Prototype** — real checks and the
+verdict engine running right here → **Impact** — hours collapse to 30 seconds, and
+customers self-diagnose straight into a support handoff.
+
+**About the data:** every beat runs on **recorded fixtures** so it works with zero
+cluster access. Some are *real captures* from a live CoreWeave `cw0bec` Blackwell
+node (the healthy node, the NCCL-on-TCP logs); the fault scenarios (dead GPU, dead
+rail) are *synthetic* — you can't break real hardware on cue. The code path is
+identical in `live` mode (`audit` reads the node's real `nvidia-smi`, IB sysfs,
+NCCL log); fixtures only swap the data source — so this is the real tool, not a
+mockup.
+
 ## Setup (once, before you present)
 
 ```bash
@@ -17,7 +41,7 @@ drops color by design.
 Optional sanity check right before you go on:
 
 ```bash
-./.venv/bin/pytest -q          # expect: 91 passed
+./.venv/bin/pytest -q          # expect: 103 passed
 ```
 
 ## Fastest path: the guided script
@@ -25,7 +49,12 @@ Optional sanity check right before you go on:
 ```bash
 ./demo.sh            # press Enter to advance through each beat (talking points on screen)
 ./demo.sh --auto     # no pauses — for a rehearsal or screen recording
+./demo.sh --video    # the 3-min judge cut: only the 6 beats in SUBMISSION.md §1
 ```
+
+**Recording the judge video?** Use `./demo.sh --video` in a **real terminal**
+(colors render, and Beat 5 opens the live menu for you to drive by hand). Read the
+"Say" lines from [`SUBMISSION.md`](./SUBMISSION.md) §1 and keep it under 3:00.
 
 The script runs the non-interactive beats (1–7) below with banners + the "Say"
 line for each, so you don't type anything live. The manual commands follow if
@@ -171,3 +200,10 @@ reproducible offline. _Interactive — drive this beat by hand; it's not part of
   doesn't expose the sysfs counters subdir). Full provenance of every fixture is
   in [`docs/cluster-access-and-captures.md`](docs/cluster-access-and-captures.md).
 - **Exit codes:** `0` all pass · `1` warnings · `2` failures — CI-ready.
+- **"How is this different from Mission Control?"** Mission Control keeps the
+  *fleet* healthy by auto-cordoning/replacing bad nodes on hardware faults.
+  Ground Control tells a *human* — ops, customer, or support — the **named root
+  cause + the fix in 30 seconds**, including the **customer-side config faults**
+  (NCCL-on-TCP, MTU, IRQ) that fleet automation isn't responsible for. It's the
+  last-mile diagnostic that *feeds* Mission Control — deterministic, portable
+  (BMaaS / self-managed / air-gapped), zero runtime tokens. See `SUBMISSION.md` §4.
