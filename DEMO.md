@@ -191,6 +191,63 @@ reproducible offline. _Interactive — drive this beat by hand; it's not part of
 
 ---
 
+## Presenter's cheat sheet — terms by beat
+
+Plain-English definitions so you can explain anything on screen. Say the **bold**
+term, then the explanation.
+
+**Beat 1 — the catalog (`audit -l`)**
+- **Check / module** — one health probe (51 total). **Groups:** **A** host/NIC/system, **B** link & RDMA physical layer, **C** RDMA/fabric/cluster, **G** GPU, **N** NCCL/collectives.
+- **Bundle** — a named set of checks for a symptom (e.g. `nccl_slow`), so you don't memorize check IDs.
+- **Auto-detect / `NA`** — checks that don't apply to this GPU are marked NA, not failed (e.g. IMEX/NVLink are for GB200/NVL multi-GPU systems, not RTX PRO 6000 Blackwell).
+- **`active` (🔴)** — tests that generate traffic (latency/bandwidth); off unless `--allow-active`, because they perturb a live fabric.
+
+**Beat 2 — healthy node (`preflight`)**
+- **RDMA** — Remote Direct Memory Access: NIC-to-NIC transfers that bypass the CPU; how GPUs talk across nodes at full speed.
+- **HCA / ConnectX-7 / InfiniBand (IB)** — the IB network card (HCA = Host Channel Adapter) and the high-speed GPU interconnect fabric it plugs into.
+- **MTU 9000 / jumbo frames** — large packet size; must match end-to-end or throughput collapses.
+- **NUMA-local** — the GPU and its NIC hang off the same CPU socket → lower latency.
+- **ECC** — error-correcting GPU memory; *corrected* is normal, *uncorrectable* means failing silicon.
+- **XID** — NVIDIA GPU hardware error codes (from the driver/dmesg); the #1 "this GPU is sick" signal.
+- **Hugepages / IRQ affinity** — memory-page and interrupt-pinning tuning that RDMA needs for full performance.
+- **NVLink / Fabric Manager** — GPU-to-GPU interconnect and the service that runs NVSwitch systems; `NA` here because this SKU has no NVSwitch.
+- **exit 0** — all green, so it can gate CI / a pre-flight check.
+
+**Beat 3 — failing GPU (`gpu_fault`)**
+- **XID 48 / 79** — specific NVIDIA error codes (memory / fatal GPU errors).
+- **Uncorrectable ECC** — memory errors the GPU couldn't fix → the chip is failing.
+- **Scope correlation** — all three signals land on `gpu:3`, so they become **one** verdict, not three lines.
+- **Cordon** — mark the node unschedulable so no new work lands on it. **RMA** — Return Merchandise Authorization = hardware replacement.
+
+**Beat 4 — NCCL on TCP (`nccl_slow`, the headline)**
+- **NCCL** — NVIDIA Collective Communications Library; runs the **all-reduce / all-to-all** operations that sync gradients across GPUs every training step — bandwidth-critical.
+- **RDMA vs TCP sockets** — RDMA is the fast path; TCP sockets is a slow CPU-bound fallback (~100× slower).
+- **busbw** — "bus bandwidth," NCCL's throughput metric in GB/s.
+- **`NCCL_IB_HCA`** — the env var that tells NCCL which IB devices to use; a wrong value silently drops it to TCP.
+
+**Beat 5 — dead RDMA port (`synth_fabric_fault`)**
+- **mlx5_0..mlx5_8** — Linux driver names for the ConnectX NIC ports (9 here).
+- **Active/LinkUp** — the healthy IB port state; anything else = down.
+- **symbol_error / link_error_recovery / local_link_integrity_errors** — IB counters that climb with a bad cable or **transceiver** (the optic at each end).
+- **rail** — one GPU's dedicated NIC→switch path (a node has several in parallel).
+- **PFC / ECN**, **out_of_sequence / packet_seq_err** — congestion-control signals and the counters that reveal congestion/retransmits.
+- **Drain** — evacuate workloads off the node.
+
+**Beat 6 — customer profile**
+- **Redaction** — masking hostnames/IPs/serials (shown as `node:<host>`).
+- **Read-only enforced** — active (traffic-generating) tests are hard-blocked.
+- **Remediation / escalation** — the plain-English fix line + the "contact CoreWeave support" line.
+
+**Beat 7 / 7b — support profile**
+- **JSON / exit_code / summary** — machine-readable output for pipelines and CI.
+- **severity / scope / supporting** — the verdict's metadata: how bad, where, and which checks back it.
+- **bundle (`audit-bundle-*.tar.gz`)** — `result.json` + raw evidence, redacted, to attach to a ticket.
+
+**Beat 8 — customer menu**
+- **Symptom picker** — plain-English menu over the bundles; **`s`** writes the support bundle, **`v`** shows evidence — self-diagnose straight into a support handoff.
+
+---
+
 ## If asked / backup
 
 - **Verbose evidence:** `audit -u gpu_fault --fixture fixtures/synth_gpu_fault -v`
