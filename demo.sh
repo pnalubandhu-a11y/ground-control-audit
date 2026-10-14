@@ -68,4 +68,4 @@ beat "BEAT 7b — the support bundle" \
 printf '\n%s━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━%s\n' "$CYAN" "$RESET"
 printf '%sWe declared a 3-year moon and landed the vertical slice that proves it:\n' "$BOLD"
 printf 'real checks on real CoreWeave hardware, correlated into root-cause verdicts\n'
-printf 'a human acts on in 30 seconds. 91 tests, three audiences, runs anywhere.%s\n\n' "$RESET"
+printf 'a human acts on in 30 seconds. 103 tests, three audiences, runs anywhere.%s\n\n' "$RESET"
