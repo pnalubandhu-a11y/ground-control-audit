@@ -1,7 +1,10 @@
 ===========================================================================
   GROUND CONTROL - DEMO VIDEO TELEPROMPTER   (target: under 3:00)
-  Record a real terminal + mic. Run:  ./demo.sh --video
-  Rehearse pacing first with:         ./demo.sh --video --auto
+  Record a real terminal + mic.
+  HANDS-FREE one-take:  ./demo.sh --video --timed   (auto-advances on a timer sized
+                        to this script; you only type at the menu in beat 1:40)
+  Manual (press Enter): ./demo.sh --video
+  Rehearse pacing:      ./demo.sh --video --auto
 ===========================================================================
 
 

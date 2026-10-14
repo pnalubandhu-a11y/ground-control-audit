@@ -50,6 +50,7 @@ Optional sanity check right before you go on:
 ./demo.sh            # press Enter to advance through each beat (talking points on screen)
 ./demo.sh --auto     # no pauses — for a rehearsal or screen recording
 ./demo.sh --video    # the 3-min judge cut: only the 6 beats in SUBMISSION.md §1
+./demo.sh --video --timed   # hands-free one-take: auto-advances; you only type at the menu
 ```
 
 **Recording the judge video?** Use `./demo.sh --video` in a **real terminal**

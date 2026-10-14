@@ -6,6 +6,8 @@
 #   ./demo.sh --auto     # no pauses (for a rehearsal / recording)
 #   ./demo.sh --video    # the 3-min judge cut: only the 6 beats in SUBMISSION.md §1
 #                        # (run this one in a REAL terminal — Beat 5 is the live menu)
+#   ./demo.sh --video --timed   # HANDS-FREE one-take: auto-advances on a timer sized
+#                        # to the teleprompter; you only type at the menu (Beat 5)
 
 set -u
 cd "$(dirname "$0")"
@@ -13,24 +15,27 @@ cd "$(dirname "$0")"
 AUDIT="./.venv/bin/audit"
 [ -x "$AUDIT" ] || AUDIT="audit"   # fall back to an activated venv
 
-AUTO=0; VIDEO=0
+AUTO=0; VIDEO=0; TIMED=0
+GAP="${GAP:-6}"     # --timed: default seconds to hold after a beat (override: GAP=8 ./demo.sh ...)
 for _a in "$@"; do
   case "$_a" in
     --auto)  AUTO=1 ;;
     --video) VIDEO=1 ;;
+    --timed) TIMED=1 ;;
   esac
 done
 
 BOLD=$'\033[1m'; CYAN=$'\033[1;36m'; DIM=$'\033[2m'; RESET=$'\033[0m'
 
-beat() {  # beat "<title>" "<talking point>" "<command...>"
+beat() {  # beat "<title>" "<talking point>" "<command...>" ["<hold_secs for --timed>"]
   printf '\n%s━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━%s\n' "$CYAN" "$RESET"
   printf '%s%s%s\n' "$CYAN$BOLD" "$1" "$RESET"
   printf '%s%s%s\n' "$DIM" "$2" "$RESET"
   printf '%s$ %s%s\n' "$BOLD" "$3" "$RESET"
-  if [ "$AUTO" -eq 0 ]; then printf '%s[Enter to run]%s' "$DIM" "$RESET"; read -r _; fi
+  if [ "$AUTO" -eq 0 ] && [ "$TIMED" -eq 0 ]; then printf '%s[Enter to run]%s' "$DIM" "$RESET"; read -r _; fi
   eval "$3"
   echo
+  if [ "$TIMED" -eq 1 ]; then sleep "${4:-$GAP}"; fi   # hands-free: hold while you narrate
 }
 
 clear
@@ -38,30 +43,33 @@ printf '%s🛰️  Ground Control — GPU-fabric flight director%s\n' "$BOLD" "$
 printf '%sWhen a training run stalls, an engineer burns hours correlating nvidia-smi,\n' "$DIM"
 printf 'ibstat, NCCL logs, and sysfs counters to find the one bad GPU or rail.\n'
 printf 'Ground Control returns a NAMED ROOT CAUSE WITH A FIX in 30 seconds.%s\n' "$RESET"
-[ "$AUTO" -eq 0 ] && { printf '\n%s[Enter to begin]%s' "$DIM" "$RESET"; read -r _; }
+if [ "$TIMED" -eq 1 ]; then sleep 15      # 0:00-0:15 — narrate the PROBLEM over the intro
+elif [ "$AUTO" -eq 0 ]; then printf '\n%s[Enter to begin]%s' "$DIM" "$RESET"; read -r _; fi
 
 if [ "$VIDEO" -eq 1 ]; then
   # 3-minute judge cut — the exact 6 beats in SUBMISSION.md §1. Run in a REAL
   # terminal: Beat 5 opens the live menu and you drive it by hand.
+  # 4th arg = seconds to hold in --timed, sized to SUBMISSION.md §1 timecodes.
   beat "BEAT 1 — it knows every check and what applies here" \
     "51 checks in 4 groups + an NCCL extension. The right column auto-detects the platform." \
-    "$AUDIT -l"
+    "$AUDIT -l" "8"
 
   beat "BEAT 2 — a healthy node: all green (REAL cw0bec capture)" \
     "Real cw0bec Blackwell node: 8x Blackwell, 9x ConnectX-7. 17 pass, 0 fail, exit 0 -> CI-ready." \
-    "$AUDIT -u preflight --fixture fixtures/cw0bec_blackwell_healthy"
+    "$AUDIT -u preflight --fixture fixtures/cw0bec_blackwell_healthy" "14"
 
   beat "BEAT 3 — THE HEADLINE: NCCL silently on TCP (~100x collapse)" \
     "Real NCCL logs. A bad env var dropped NCCL from RDMA to TCP sockets — the verdict names it and the fix." \
-    "$AUDIT -u nccl_slow --fixture fixtures/nccl_tcp_fallback"
+    "$AUDIT -u nccl_slow --fixture fixtures/nccl_tcp_fallback" "35"
 
   beat "BEAT 4 — a failing GPU, correlated into ONE root cause" \
     "XID + ECC + 91C on the same GPU -> one named cause: cordon + RMA." \
-    "$AUDIT -u gpu_fault --fixture fixtures/synth_gpu_fault"
+    "$AUDIT -u gpu_fault --fixture fixtures/synth_gpu_fault" "20"
 
+  # Beat 5 is interactive — no auto-hold; you drive the menu by hand.
   beat "BEAT 5 — CUSTOMER self-serve menu + one-keypress support bundle (DRIVE BY HAND)" \
     "Type 1 (training slow) -> read the redacted verdict -> press s (writes support bundle) -> Enter -> q. Needs a real terminal." \
-    "$AUDIT --profile customer --fixture fixtures/nccl_tcp_fallback"
+    "$AUDIT --profile customer --fixture fixtures/nccl_tcp_fallback" "0"
 else
 beat "BEAT 1 — it knows every check and what applies here" \
   "51 reference checks in 4 groups + an NCCL extension, plus use-case bundles. The right column auto-detects the platform." \
@@ -100,3 +108,4 @@ printf '\n%s━━━━━━━━━━━━━━━━━━━━━━�
 printf '%sWe declared a 3-year moon and landed the vertical slice that proves it:\n' "$BOLD"
 printf 'real checks on real CoreWeave hardware, correlated into root-cause verdicts\n'
 printf 'a human acts on in 30 seconds. 103 tests, three audiences, runs anywhere.%s\n\n' "$RESET"
+if [ "$TIMED" -eq 1 ]; then sleep 15; fi      # 2:45-3:00 — narrate the CLOSE over the banner
