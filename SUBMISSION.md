@@ -18,17 +18,17 @@ Keep it to **3:00 max** — judges stop at the cap.
 |------|-----------|-----------------|
 | **0:00–0:15** | Title card or empty terminal | "When a training run stalls on a GPU cluster, an engineer burns **hours** correlating `nvidia-smi`, `ibstat`, NCCL logs, and sysfs counters across nodes to find the one bad GPU or dead rail. Ground Control does it in one command." |
 | **0:15–0:35** | `audit -l` then `audit -u preflight --fixture fixtures/cw0bec_blackwell_healthy` | "51 checks in four groups, and it **auto-detects the platform**. Here's a **real CoreWeave Blackwell node** — 17 checks, all green. Exit 0, so it drops straight into a CI / preflight gate." |
-| **0:35–1:15** | `audit -u nccl_slow --fixture fixtures/nccl_tcp_fallback` | "These are **real NCCL logs**. One bad env var silently dropped NCCL from RDMA to **TCP sockets** — a ~**100× bandwidth collapse** that just looks like 'the cluster is slow.' Instead of a wall of counters, the **verdict engine names the root cause and the exact fix**. This is the moonshot: correlation, not just checks." |
-| **1:15–1:40** | `audit -u gpu_fault --fixture fixtures/synth_gpu_fault` | "It generalizes. Three raw signals on the **same GPU** — XID errors, uncorrectable ECC, 91 °C — collapse into **one** verdict: cordon the node and RMA the GPU." |
-| **1:40–2:20** | `audit --profile customer --fixture fixtures/nccl_tcp_fallback` → type `1` → then `s` | "Same engine, three audiences. A **customer** runs `audit`, picks a symptom in plain English — no flags, no bundle names — and gets the **redacted** root cause and fix. Then the payoff: **one keypress, `s`, packages that exact run into a support bundle** to hand to CoreWeave. Self-diagnose straight into a support handoff." |
+| **0:35–1:15** | `audit -u nccl_slow --fixture fixtures/nccl_tcp_fallback` | "These are **real NCCL logs**. One bad env var silently dropped NCCL from RDMA to **TCP sockets** — a ~**100x bandwidth collapse** that just looks like 'the cluster is slow.' Instead of a wall of counters, the **verdict engine names the root cause and the exact fix**. This is the moonshot: correlation, not just checks." |
+| **1:15–1:40** | `audit -u gpu_fault --fixture fixtures/synth_gpu_fault` | "It generalizes. Three raw signals on the **same GPU** — XID errors, uncorrectable ECC, 91C — collapse into **one** verdict: cordon the node and RMA the GPU." |
+| **1:40–2:20** | `audit --profile customer --fixture fixtures/nccl_tcp_fallback`, then type `1`, then `s` | "Same engine, three audiences. A **customer** runs `audit`, picks a symptom in plain English — no flags, no bundle names — and gets the **redacted** root cause and fix. Then the payoff: **one keypress, `s`, packages that exact run into a support bundle** to hand to CoreWeave. Self-diagnose straight into a support handoff." |
 | **2:20–2:45** | Verdict still on screen | "That collapses a multi-hour war-room into **30 seconds**. On clusters where idle GPU-hours cost thousands per hour, faster diagnosis is real money — and it moves tier-1 triage from the support queue to self-serve." |
 | **2:45–3:00** | `demo.sh` close banner or title | "This is the **walking skeleton** of a 3-year moon: an autonomous, predictive, fleet-scale GPU-fabric flight director. Real checks on real hardware, correlated into an action in 30 seconds. **103 tests, three audiences, runs anywhere.** Everything above it is depth on the same spine." |
 
 **Rubric coverage check:**
-- *Speed / Better Ways of Working* → 0:00, 0:35, 2:20 (hours → 30s; self-serve).
-- *Business Impact* → 2:20 (GPU-hours, support deflection).
-- *Technical Execution* → 0:15–1:40 (auto-detect, verdict engine, real captures, 103 tests).
-- *Presentation & Clarity* → the Problem→Solution→Prototype→Impact arc end-to-end.
+- *Speed / Better Ways of Working*: 0:00, 0:35, 2:20 (hours to 30s; self-serve).
+- *Business Impact*: 2:20 (GPU-hours, support deflection).
+- *Technical Execution*: 0:15-1:40 (auto-detect, verdict engine, real captures, 103 tests).
+- *Presentation & Clarity*: the Problem-Solution-Prototype-Impact arc end-to-end.
 
 ---
 
