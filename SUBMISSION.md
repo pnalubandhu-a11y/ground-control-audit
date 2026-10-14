@@ -4,31 +4,33 @@ Everything needed to record and submit. Deadline: **Thu Oct 15, 12:00 PM PT**.
 
 ---
 
-## 1. Demo video — 3:00 shot-list + narration
+## 1. Demo video — ~2:50 script (hard cap 3:00)
 
-**Format:** screen recording of a real terminal (colors + emoji render only in a
-real TTY, not piped). Run the commands live or pre-stage them. The first five
-beats mirror `./demo.sh`; the last beat (menu) is interactive — drive it by hand.
-Keep it to **3:00 max** — judges stop at the cap.
+**Record the 6-beat cut:** `./demo.sh --video` (real terminal + mic, big font).
+Rehearse silently with `./demo.sh --video --auto`; hands-free one-take with
+`./demo.sh --video --timed`. The full narration teleprompter is
+[`VIDEO-SCRIPT.txt`](./VIDEO-SCRIPT.txt) — scroll it while you record. The table
+below is the same script in brief; each row is tagged with the rubric criterion it
+serves.
 
-> Tip: `pip install -e ".[dev]"` and `alias audit=./.venv/bin/audit` first, in the
-> `hackathon/audit` dir. Rehearse once with `./demo.sh --auto`.
+> Setup once: `python3 -m venv .venv && ./.venv/bin/pip install -e ".[dev]"`.
+> Do **not** run bare `./demo.sh` for the video — that's the full 8-beat version
+> and runs long. Use `--video`.
 
-| Time | On screen | Say (narration) |
-|------|-----------|-----------------|
-| **0:00–0:15** | Title card or empty terminal | "When a training run stalls on a GPU cluster, an engineer burns **hours** correlating `nvidia-smi`, `ibstat`, NCCL logs, and sysfs counters across nodes to find the one bad GPU or dead rail. Ground Control does it in one command." |
-| **0:15–0:35** | `audit -l` then `audit -u preflight --fixture fixtures/cw0bec_blackwell_healthy` | "51 checks in four groups, and it **auto-detects the platform**. Here's a **real CoreWeave Blackwell node** — 17 checks, all green. Exit 0, so it drops straight into a CI / preflight gate." |
-| **0:35–1:15** | `audit -u nccl_slow --fixture fixtures/nccl_tcp_fallback` | "These are **real NCCL logs**. One bad env var silently dropped NCCL from RDMA to **TCP sockets** — a ~**100x bandwidth collapse** that just looks like 'the cluster is slow.' Instead of a wall of counters, the **verdict engine names the root cause and the exact fix**. This is the moonshot: correlation, not just checks." |
-| **1:15–1:40** | `audit -u gpu_fault --fixture fixtures/synth_gpu_fault` | "It generalizes. Three raw signals on the **same GPU** — XID errors, uncorrectable ECC, 91C — collapse into **one** verdict: cordon the node and RMA the GPU." |
-| **1:40–2:20** | `audit --profile customer --fixture fixtures/nccl_tcp_fallback`, then type `1`, then `s` | "Same engine, three audiences. A **customer** runs `audit`, picks a symptom in plain English — no flags, no bundle names — and gets the **redacted** root cause and fix. Then the payoff: **one keypress, `s`, packages that exact run into a support bundle** to hand to CoreWeave. Self-diagnose straight into a support handoff." |
-| **2:20–2:45** | Verdict still on screen | "That collapses a multi-hour war-room into **30 seconds**. On clusters where idle GPU-hours cost thousands per hour, faster diagnosis is real money — and it moves tier-1 triage from the support queue to self-serve." |
-| **2:45–3:00** | `demo.sh` close banner or title | "This is the **walking skeleton** of a 3-year moon: an autonomous, predictive, fleet-scale GPU-fabric flight director. Real checks on real hardware, correlated into an action in 30 seconds. **103 tests, three audiences, runs anywhere.** Everything above it is depth on the same spine." |
+| Time | On screen | Say (narration) | Rubric |
+|------|-----------|-----------------|--------|
+| **0:00–0:20** | Title / empty terminal | "Picture a thousand-GPU training run that suddenly slows to a crawl — or dies. Finding the cause means an engineer hand-correlating `nvidia-smi`, `ibstat`, and NCCL logs across dozens of nodes — **hours** of your most expensive people, while **thousands of dollars of GPUs sit idle**. Ground Control turns that into one command." | Speed + Business |
+| **0:20–0:38** | `audit -l` | "51 checks across host, network, and GPU, plus an NCCL extension. It **auto-detects the hardware** — checks that don't apply show NA instead of firing false alarms — and groups them into bundles so you run the right ones for the symptom." | Technical |
+| **0:38–0:58** | `audit -u preflight --fixture fixtures/cw0bec_blackwell_healthy` | "**Real data from a live CoreWeave Blackwell node** — 8 GPUs, 9 ConnectX-7 NICs. 17 checks, all green, exit 0 — so it drops straight into CI or a pre-flight gate and **stops a bad node before it ever gets a job**." | Technical |
+| **0:58–1:35** | `audit -u nccl_slow --fixture fixtures/nccl_tcp_fallback` | "A real failure — **real NCCL logs**. One wrong env var silently pushed NCCL off RDMA onto TCP sockets: a ~**100× collapse** that just looks like 'the cluster feels slow,' and teams burn days on it. Ground Control's **verdict engine correlates the signals into the named root cause and the exact fix**. That's the moonshot: an answer, not another dashboard." | Speed + Technical |
+| **1:35–1:55** | `audit -u gpu_fault --fixture fixtures/synth_gpu_fault` | "It generalizes. Three signals on the **same GPU** — XID, uncorrectable ECC, 91° — collapse into **one** verdict with an action: cordon the node and open an RMA." | Technical |
+| **1:55–2:35** | `audit --profile customer --fixture fixtures/nccl_tcp_fallback` → type `1`, then `s` | "One binary, **three audiences**. A **customer** picks a symptom in plain English — no flags, no expertise — and gets the root cause with internal IDs **redacted**. Then the payoff: **one keypress packages that exact run into a support bundle**. The customer self-diagnoses; if they still need us, **CoreWeave support gets structured evidence** instead of 'it's slow.'" | Business |
+| **2:35–2:50** | Close banner | "Concrete value: for customers, **faster runs, less idle GPU spend, less waiting on support**; for CoreWeave, **fewer escalations, faster triage, higher fleet utilization** — on the failures that hurt most." | Business |
+| **2:50–3:00** | Close banner | "And this is the **walking skeleton** of a bigger moon — an autonomous, fleet-scale flight director that predicts failures before they strike. 103 tests, three audiences, real hardware. Ground Control." | Presentation |
 
-**Rubric coverage check:**
-- *Speed / Better Ways of Working*: 0:00, 0:35, 2:20 (hours to 30s; self-serve).
-- *Business Impact*: 2:20 (GPU-hours, support deflection).
-- *Technical Execution*: 0:15-1:40 (auto-detect, verdict engine, real captures, 103 tests).
-- *Presentation & Clarity*: the Problem-Solution-Prototype-Impact arc end-to-end.
+**Rubric coverage:** Speed (0:00, 0:58) · Business impact (0:00, 1:55, 2:35) ·
+Technical execution (0:20–1:55) · Presentation & clarity (the whole Problem →
+Solution → Prototype → Impact arc).
 
 ---
 
