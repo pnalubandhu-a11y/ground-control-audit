@@ -8,10 +8,11 @@
   .beat { border:1px solid #cdd6ea; border-left:5px solid #3ad0e8; padding:7px 11px; margin:9px 0; }
   .beat .hdr { font-weight:bold; color:#0b142e; font-size:12pt; }
   .beat .cmd { font-family:"Courier New",monospace; background:#f2f5fb; color:#14203a; padding:2px 6px; display:inline-block; margin:3px 0; font-size:10pt; }
-  .lab { display:inline-block; min-width:50px; font-weight:bold; }
-  .what .lab { color:#1b6fb8; } .why .lab { color:#b26a00; }
-  .say .lab { color:#108a4a; } .do .lab { color:#9b1c6b; }
+  .lab { display:inline-block; min-width:52px; font-weight:bold; vertical-align:top; }
+  .what .lab { color:#1b6fb8; }
+  .say .lab { color:#108a4a; } .do .lab { color:#9b1c6b; } .notes .lab { color:#5b43b5; }
   .say { background:#eefaf2; padding:4px 8px; margin:4px 0; }
+  .notes { background:#f1eefb; border-left:3px solid #5b43b5; padding:5px 8px; margin:4px 0; font-size:10.5pt; }
   .do  { font-family:"Courier New",monospace; font-size:10pt; }
   .t { color:#777; font-weight:normal; font-size:9.5pt; }
   .note { background:#fff6e5; border:1px solid #f0d49a; padding:6px 10px; font-size:10.5pt; margin:8px 0; }
@@ -20,7 +21,7 @@
 <body>
 
 <h1>Ground Control — Demo Run of Show</h1>
-<p class="sub">2 intro slides + the FULL ./demo.sh (8 beats) · target ~2:58 · hard cap 3:00 · each beat says WHAT it does and WHY it matters</p>
+<p class="sub">2 intro slides + the FULL ./demo.sh (8 beats) · target ~2:58 · hard cap 3:00 · WHAT = what runs · SAY = read aloud · DO = keystrokes · NOTES = extra detail for explaining the use case</p>
 
 <div class="note"><b>Pacing is tight.</b> Move briskly and press Enter promptly.
 <b>Trim levers if long:</b> drop the slides, or skip Beat 7 (JSON) and show only Beat 7b (the bundle).</div>
@@ -30,11 +31,13 @@
 <div class="beat">
   <div class="hdr">Slide 1 — The Problem <span class="t">(0:00–0:12)</span></div>
   <div class="say"><span class="lab">SAY</span> “A thousand-GPU training run slows down — or dies. Finding out why is hours of hand-digging through logs and counters across many nodes while the GPUs sit idle — and it looks the same whether it’s bad hardware or one wrong setting.”</div>
+  <div class="notes"><span class="lab">NOTES</span> Set the stakes: GPU time is the most expensive thing we sell, so a stalled run is money burning. The hard part isn’t fixing it — it’s <i>finding</i> it, by hand, across many machines. Hardware fault vs. a config mistake look identical from the outside.</div>
 </div>
 
 <div class="beat">
   <div class="hdr">Slide 2 — The Solution <span class="t">(0:12–0:24)</span></div>
   <div class="say"><span class="lab">SAY</span> “Ground Control: one command names the root cause and the fix in 30 seconds — for ops, customers, and support. Let me show you.” → switch to the terminal.</div>
+  <div class="notes"><span class="lab">NOTES</span> The differentiator is the <b>verdict engine</b>: it doesn’t just list red/green checks, it <i>correlates</i> them into one named cause with the action. Same tool, three audiences. Deterministic, runs on real hardware — no AI cost to run. Then pivot to the live terminal.</div>
 </div>
 
 <h2>PART 2 — LIVE DEMO &nbsp; (0:24–~2:58) &nbsp; run: ./demo.sh</h2>
@@ -42,88 +45,80 @@
 <div class="beat">
   <div class="hdr">Intro banner <span class="t">(0:24–0:28)</span></div>
   <div class="what"><span class="lab">WHAT</span> starts the demo runner; prints the one-line problem banner.</div>
-  <div class="why"><span class="lab">WHY</span> hand-off from the slides to the real tool.</div>
   <div class="say"><span class="lab">SAY</span> “Here it is, live.”</div>
   <div class="do"><span class="lab">DO</span> press Enter.</div>
+  <div class="notes"><span class="lab">NOTES</span> Don’t dwell — the slides already made the pitch. One line and move into the catalog.</div>
 </div>
 
 <div class="beat">
-  <div class="hdr">Beat 1 — The catalog <span class="t">(0:28–0:40)</span></div>
-  <div class="cmd">audit -l</div>
+  <div class="hdr">Beat 1 — The catalog <span class="t">(0:28–0:40)</span> &nbsp; <span class="cmd">audit -l</span></div>
   <div class="what"><span class="lab">WHAT</span> lists all 51 checks (groups A/B/C/G + NCCL) and the use-case bundles.</div>
-  <div class="why"><span class="lab">WHY</span> breadth, and it auto-detects the hardware — checks that don’t apply show N-A instead of firing false alarms.</div>
   <div class="say"><span class="lab">SAY</span> “51 checks across the server, the network, and the GPUs. It auto-detects the hardware, and bundles the right checks per symptom.”</div>
   <div class="do"><span class="lab">DO</span> press Enter.</div>
+  <div class="notes"><span class="lab">NOTES</span> Point at the right-hand column: <b>native</b> = runs here; <b>NA</b> = auto-skipped because this GPU lacks that feature (NVLink/IMEX are GB200/NVL multi-GPU features, not RTX PRO 6000); <b>active (red)</b> = traffic-generating tests, off by default so they never disturb a live cluster. The bundles at the bottom (preflight, nccl_slow, gpu_fault…) are named recipes — the menu and every demo just call these. Takeaway: host + network + GPU in one tool that adapts to whatever hardware it lands on.</div>
 </div>
 
 <div class="beat">
-  <div class="hdr">Beat 2 — A healthy node <span class="t">(0:40–0:54)</span></div>
-  <div class="cmd">audit -u preflight --fixture fixtures/cw0bec_blackwell_healthy</div>
+  <div class="hdr">Beat 2 — A healthy node <span class="t">(0:40–0:54)</span> &nbsp; <span class="cmd">audit -u preflight --fixture fixtures/cw0bec_blackwell_healthy</span></div>
   <div class="what"><span class="lab">WHAT</span> runs the preflight bundle against a REAL capture from a live CoreWeave Blackwell node.</div>
-  <div class="why"><span class="lab">WHY</span> proves it runs on real hardware; all-green + exit 0 can gate CI.</div>
   <div class="say"><span class="lab">SAY</span> “Real data from a live CoreWeave Blackwell node — eight GPUs, nine network cards. All green, exit zero: you can gate CI and stop a bad node before it ever gets a job.”</div>
   <div class="do"><span class="lab">DO</span> press Enter.</div>
+  <div class="notes"><span class="lab">NOTES</span> Call out “17 pass, 0 fail” and <b>exit 0</b> — the exit code is the automation hook: a CI gate or scheduler runs this and refuses to launch on a node that isn’t green. Point at A6 (real NUMA topology — which GPUs sit electrically close to which NIC) and A5 (real kernel/driver/firmware versions): proof this is a live node, not mocked. This is the known-good baseline, so the failures next are obvious by contrast.</div>
 </div>
 
 <div class="beat">
-  <div class="hdr">Beat 3 — A failing GPU <span class="t">(0:54–1:10)</span></div>
-  <div class="cmd">audit -u gpu_fault --fixture fixtures/synth_gpu_fault</div>
+  <div class="hdr">Beat 3 — A failing GPU <span class="t">(0:54–1:10)</span> &nbsp; <span class="cmd">audit -u gpu_fault --fixture fixtures/synth_gpu_fault</span></div>
   <div class="what"><span class="lab">WHAT</span> runs the GPU-fault bundle on a failing-GPU capture.</div>
-  <div class="why"><span class="lab">WHY</span> shows correlation — three separate signals on ONE GPU become a single verdict with an action.</div>
   <div class="say"><span class="lab">SAY</span> “First, a failing GPU. Three separate signs on the same GPU — driver errors, failing memory, and ninety-one degrees — collapse into one verdict: fence the node off and replace the card.”</div>
   <div class="do"><span class="lab">DO</span> press Enter.</div>
+  <div class="notes"><span class="lab">NOTES</span> Three red lines: G5 = Xid (NVIDIA driver/hardware error codes), G3 = uncorrectable ECC (failing GPU memory), G7 = 91°C. Individually, an engineer chases each one. The point: the verdict at the top fuses all three <i>because they’re on the same gpu:3</i>, and gives the action. “Cordon” = tell the scheduler to stop placing work here; “RMA” = get the card replaced. This is correlation on a shared scope — the core idea in miniature.</div>
 </div>
 
 <div class="beat">
-  <div class="hdr">Beat 4 — NCCL on TCP · THE HEADLINE <span class="t">(1:10–1:42 · slow down)</span></div>
-  <div class="cmd">audit -u nccl_slow --fixture fixtures/nccl_tcp_fallback</div>
+  <div class="hdr">Beat 4 — NCCL on TCP · THE HEADLINE <span class="t">(1:10–1:42 · slow down)</span> &nbsp; <span class="cmd">audit -u nccl_slow --fixture fixtures/nccl_tcp_fallback</span></div>
   <div class="what"><span class="lab">WHAT</span> runs the NCCL-slow bundle against real NCCL logs where NCCL fell back to TCP.</div>
-  <div class="why"><span class="lab">WHY</span> the signature SILENT failure — a ~100× slowdown that just looks like “the cluster is slow”; the verdict names the cause + the fix. The differentiator.</div>
-  <div class="say"><span class="lab">SAY</span> “Now the big one. GPUs sync data during training through a library called NCCL. Normally it uses RDMA — the fast path where network cards talk directly and skip the CPU. One wrong setting silently dropped it to ordinary TCP — about a hundred times slower — looking just like ‘the cluster is slow.’ The verdict names the cause AND the exact fix. That’s the moonshot: an answer, not another dashboard.”</div>
+  <div class="say"><span class="lab">SAY</span> “Now the big one. GPUs sync data during training through a library called NCCL. Normally it uses RDMA — the fast path where network cards talk directly and skip the CPU. One wrong setting silently dropped it to ordinary TCP — about a hundred times slower — looking just like ‘the cluster is slow.’ The verdict names the cause AND the exact fix.”</div>
   <div class="do"><span class="lab">DO</span> press Enter.</div>
+  <div class="notes"><span class="lab">NOTES</span> The money moment — slow down. The insidious part: <b>nothing is broken</b> — every hardware check (B12/B13/B14) is green, the fabric is healthy. It’s a <i>config</i> regression (wrong NCCL_IB_HCA) that just looks like generic slowness, so teams can burn days. The verdict names it and the exact knob to check. If asked, tie it to the real GB300 incident this month — this exact class of failure hit a live customer and took a multi-day war-room; Ground Control turns that into a one-line verdict. This is the business case.</div>
 </div>
 
 <div class="beat">
-  <div class="hdr">Beat 5 — A dead RDMA port <span class="t">(1:42–1:58)</span></div>
-  <div class="cmd">audit -u preflight --fixture fixtures/synth_fabric_fault</div>
+  <div class="hdr">Beat 5 — A dead RDMA port <span class="t">(1:42–1:58)</span> &nbsp; <span class="cmd">audit -u preflight --fixture fixtures/synth_fabric_fault</span></div>
   <div class="what"><span class="lab">WHAT</span> runs preflight on a fabric-fault capture (a down port, a port throwing errors, a congested port).</div>
-  <div class="why"><span class="lab">WHY</span> shows it correlates NETWORK faults too, and names the specific bad link.</div>
   <div class="say"><span class="lab">SAY</span> “A dead network port. One port down, another throwing errors, a third congested — the verdict pins the dead rail and the action: check the cable, drain the node.”</div>
   <div class="do"><span class="lab">DO</span> press Enter.</div>
+  <div class="notes"><span class="lab">NOTES</span> Three network symptoms at once: B13 a port DOWN (mlx5_5), B14 rising error counters on mlx5_4 (symbol errors = a flaky cable or optic), B11 congestion on mlx5_6. The verdict pins the dead one (mlx5_5) and the action. A “rail” is one of a node’s parallel NIC-to-switch paths — lose one and multi-node bandwidth craters. Shows the tool correlates <i>network</i> faults, not just GPU.</div>
 </div>
 
 <div class="beat">
-  <div class="hdr">Beat 6 — Customer profile <span class="t">(1:58–2:14)</span></div>
-  <div class="cmd">audit --profile customer -u nccl_slow --fixture fixtures/nccl_tcp_fallback</div>
+  <div class="hdr">Beat 6 — Customer profile <span class="t">(1:58–2:14)</span> &nbsp; <span class="cmd">audit --profile customer -u nccl_slow --fixture .../nccl_tcp_fallback</span></div>
   <div class="what"><span class="lab">WHAT</span> the same NCCL run, through the customer profile.</div>
-  <div class="why"><span class="lab">WHY</span> one engine, three audiences; only safety, redaction, and plain-English remediation change.</div>
   <div class="say"><span class="lab">SAY</span> “Same engine, three audiences. In customer mode it’s read-only, internal names are hidden, and every failure carries a plain-English fix and a ‘contact support’ line.”</div>
   <div class="do"><span class="lab">DO</span> press Enter.</div>
+  <div class="notes"><span class="lab">NOTES</span> Explicitly compare to Beat 4: the node name is now “node:&lt;host&gt;” (redacted), it says read-only, and each failure gains the remediation arrows + “Contact CoreWeave support.” Same engine, same finding — only safety, redaction, and wording changed. This is how a customer who isn’t a GPU expert gets the same answer without seeing internal details.</div>
 </div>
 
 <div class="beat">
-  <div class="hdr">Beat 7 — Support · JSON <span class="t">(2:14–2:26 · TRIM LEVER: skippable)</span></div>
-  <div class="cmd">audit --profile support -u gpu_fault --fixture fixtures/synth_gpu_fault --json | head -20</div>
+  <div class="hdr">Beat 7 — Support · JSON <span class="t">(2:14–2:26 · TRIM LEVER: skippable)</span> &nbsp; <span class="cmd">audit --profile support ... --json</span></div>
   <div class="what"><span class="lab">WHAT</span> emits structured JSON — verdict, severity, scope, supporting checks.</div>
-  <div class="why"><span class="lab">WHY</span> machine-readable for pipelines / CI / dashboards.</div>
   <div class="say"><span class="lab">SAY</span> “For support and automation, the same run emits structured JSON — the verdict, how severe, where, and the checks behind it.”</div>
   <div class="do"><span class="lab">DO</span> press Enter.</div>
+  <div class="notes"><span class="lab">NOTES</span> Point at the fields: exit_code (2 = failures, CI-friendly), the summary counts, and the verdicts array with id / severity / scope / supporting. This is what you feed into dashboards, ticketing, or automation. If you’re short on time, skip this and go straight to the bundle (7b).</div>
 </div>
 
 <div class="beat">
-  <div class="hdr">Beat 7b — Support · the bundle <span class="t">(2:26–2:44)</span></div>
-  <div class="cmd">audit --profile support -u gpu_fault --fixture fixtures/synth_gpu_fault --bundle</div>
+  <div class="hdr">Beat 7b — Support · the bundle <span class="t">(2:26–2:44)</span> &nbsp; <span class="cmd">audit --profile support ... --bundle</span></div>
   <div class="what"><span class="lab">WHAT</span> writes a redacted tarball (result.json + raw evidence).</div>
-  <div class="why"><span class="lab">WHY</span> one artifact a customer or engineer attaches straight to a ticket.</div>
   <div class="say"><span class="lab">SAY</span> “And a redacted bundle — the result plus the raw evidence — to attach straight to a support ticket. Self-serve, into a clean handoff.”</div>
   <div class="do"><span class="lab">DO</span> press Enter.</div>
+  <div class="notes"><span class="lab">NOTES</span> It writes audit-bundle-*.tar.gz. Inside: result.json + the raw evidence files, all redacted. This is the single artifact a customer attaches to a ticket, so support has everything up front — no “can you run X and send the output” back-and-forth. Closes the self-serve → support loop.</div>
 </div>
 
 <div class="beat">
   <div class="hdr">Close <span class="t">(2:44–2:58)</span></div>
   <div class="what"><span class="lab">WHAT</span> the summary banner.</div>
-  <div class="why"><span class="lab">WHY</span> land the value and the moonshot.</div>
   <div class="say"><span class="lab">SAY</span> “Faster runs and less idle spend for customers; fewer escalations and higher fleet use for CoreWeave. And the foundation to predict these failures before they strike. Ground Control.”</div>
+  <div class="notes"><span class="lab">NOTES</span> Land the three audiences and the moonshot in one breath: this is the walking skeleton; the future is predicting these failures before they strike. End on the name.</div>
 </div>
 
 <div class="foot">

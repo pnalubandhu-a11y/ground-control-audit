@@ -3,10 +3,10 @@
 ---------------------------------------------------------------------------
   1) Present intro-slides.pptx (Slide 1, Slide 2)   ~0:24  (keep slides brief)
   2) Switch to a REAL terminal and run:  ./demo.sh   (the full 8-beat demo)
-  Pacing is TIGHT - move briskly, press Enter promptly. Jargon explained
-  inline. Each beat lists WHAT it does and WHY it matters.
-  TRIM LEVERS if you run long: drop the slides, or skip Beat 7 (JSON) and
-  show only Beat 7b (the bundle).
+  WHAT = what runs · SAY = read aloud · DO = keystrokes
+  NOTES = extra detail to draw on when you explain each use case.
+  Pacing is TIGHT - move briskly. TRIM LEVERS if long: drop the slides, or
+  skip Beat 7 (JSON) and show only Beat 7b (the bundle).
 ===========================================================================
 
 
@@ -15,17 +15,22 @@
 ###########################################################################
 
 --- SLIDE 1 : THE PROBLEM  (0:00 - 0:12) -----------------------------------
-SAY:
- "A thousand-GPU training run slows down - or dies. Finding out why is hours
-  of hand-digging through logs and counters across many nodes while the GPUs
-  sit idle - and it looks the same whether it's bad hardware or one wrong
-  setting."
+SAY : "A thousand-GPU training run slows down - or dies. Finding out why is
+       hours of hand-digging through logs and counters across many nodes while
+       the GPUs sit idle - and it looks the same whether it's bad hardware or
+       one wrong setting."
+NOTES: GPU time is the most expensive thing we sell, so a stalled run is money
+       burning. The hard part isn't fixing it - it's FINDING it, by hand,
+       across many machines. Hardware fault vs. config mistake look identical.
 
 --- SLIDE 2 : THE SOLUTION  (0:12 - 0:24) ----------------------------------
-SAY:
- "Ground Control: one command names the root cause and the fix in 30 seconds -
-  for ops, customers, and support. Let me show you."
- -> switch to the terminal.
+SAY : "Ground Control: one command names the root cause and the fix in 30
+       seconds - for ops, customers, and support. Let me show you."
+       -> switch to the terminal.
+NOTES: The differentiator is the VERDICT ENGINE - it doesn't just list
+       red/green checks, it correlates them into one named cause with the
+       action. Same tool, three audiences. Deterministic, real hardware, no AI
+       cost to run.
 
 
 ###########################################################################
@@ -33,95 +38,118 @@ SAY:
 ###########################################################################
 
 --- INTRO BANNER  (0:24 - 0:28) -------------------------------------------
-WHAT: starts the demo runner; prints the one-line problem banner.
-WHY : hand-off from the slides to the real tool.
-SAY : "Here it is, live."
-DO  : press Enter.
+WHAT : starts the demo runner; prints the one-line problem banner.
+SAY  : "Here it is, live."
+DO   : press Enter.
+NOTES: don't dwell - the slides made the pitch; move into the catalog.
 
 --- BEAT 1 : THE CATALOG  (0:28 - 0:40)   audit -l ------------------------
-WHAT: lists all 51 checks (groups A/B/C/G + NCCL) and the use-case bundles.
-WHY : breadth, and it auto-detects the hardware - checks that don't apply
-      show N-A instead of firing false alarms.
-SAY : "51 checks across the server, the network, and the GPUs. It auto-detects
-       the hardware, and bundles the right checks per symptom."
-DO  : press Enter.
+WHAT : lists all 51 checks (groups A/B/C/G + NCCL) and the use-case bundles.
+SAY  : "51 checks across the server, the network, and the GPUs. It auto-detects
+        the hardware, and bundles the right checks per symptom."
+DO   : press Enter.
+NOTES: point at the right column - native = runs here; NA = auto-skipped
+       because this GPU lacks that feature (NVLink/IMEX are GB200/NVL multi-GPU
+       features, not RTX PRO 6000); active (red) = traffic-generating tests,
+       off by default so they never disturb a live cluster. The bundles at the
+       bottom are named recipes the menu and demos call. Takeaway: host +
+       network + GPU in one tool that adapts to the hardware it lands on.
 
 --- BEAT 2 : A HEALTHY NODE  (0:40 - 0:54)
     audit -u preflight --fixture fixtures/cw0bec_blackwell_healthy ---------
-WHAT: runs the preflight bundle against a REAL capture from a live CoreWeave
-      Blackwell node.
-WHY : proves it runs on real hardware; all-green + exit 0 can gate CI.
-SAY : "Real data from a live CoreWeave Blackwell node - eight GPUs, nine
-       network cards. All green, exit zero: you can gate CI and stop a bad
-       node before it ever gets a job."
-DO  : press Enter.
+WHAT : runs preflight against a REAL capture from a live CoreWeave Blackwell node.
+SAY  : "Real data from a live CoreWeave Blackwell node - eight GPUs, nine
+        network cards. All green, exit zero: you can gate CI and stop a bad
+        node before it ever gets a job."
+DO   : press Enter.
+NOTES: call out "17 pass, 0 fail" and EXIT 0 - the exit code is the automation
+       hook: a CI gate or scheduler runs this and refuses to launch on a node
+       that isn't green. A6 shows real NUMA topology (which GPUs sit close to
+       which NIC); A5 shows real kernel/driver/firmware - proof it's a live
+       node, not mocked. This is the known-good baseline.
 
 --- BEAT 3 : A FAILING GPU  (0:54 - 1:10)
     audit -u gpu_fault --fixture fixtures/synth_gpu_fault -----------------
-WHAT: runs the GPU-fault bundle on a failing-GPU capture.
-WHY : shows correlation - three separate signals on ONE GPU become a single
-      verdict with an action.
-SAY : "First, a failing GPU. Three separate signs on the same GPU - driver
-       errors, failing memory, and ninety-one degrees - collapse into one
-       verdict: fence the node off and replace the card."
-DO  : press Enter.
+WHAT : runs the GPU-fault bundle on a failing-GPU capture.
+SAY  : "First, a failing GPU. Three separate signs on the same GPU - driver
+        errors, failing memory, and ninety-one degrees - collapse into one
+        verdict: fence the node off and replace the card."
+DO   : press Enter.
+NOTES: three red lines - G5 Xid (driver/hardware error codes), G3 uncorrectable
+       ECC (failing GPU memory), G7 91C. Individually an engineer chases each.
+       The verdict fuses all three BECAUSE they're on the same gpu:3, and gives
+       the action. Cordon = scheduler stops placing work here; RMA = replace
+       the card. Correlation on a shared scope - the core idea.
 
 --- BEAT 4 : NCCL ON TCP - THE HEADLINE  (1:10 - 1:42)   <-- slow down
     audit -u nccl_slow --fixture fixtures/nccl_tcp_fallback --------------
-WHAT: runs the NCCL-slow bundle against real NCCL logs where NCCL fell back
-      to TCP.
-WHY : the signature SILENT failure - a ~100x slowdown that just looks like
-      "the cluster is slow"; the verdict names cause + fix. The differentiator.
-SAY : "Now the big one. GPUs sync data during training through a library
-       called NCCL. Normally it uses RDMA - the fast path where network cards
-       talk directly and skip the CPU. One wrong setting silently dropped it
-       to ordinary TCP - about a hundred times slower - looking just like 'the
-       cluster is slow.' The verdict names the cause AND the exact fix. That's
-       the moonshot: an answer, not another dashboard."
-DO  : press Enter.
+WHAT : runs nccl_slow against real NCCL logs where NCCL fell back to TCP.
+SAY  : "Now the big one. GPUs sync data during training through a library
+        called NCCL. Normally it uses RDMA - the fast path where network cards
+        talk directly and skip the CPU. One wrong setting silently dropped it
+        to ordinary TCP - about a hundred times slower - looking just like 'the
+        cluster is slow.' The verdict names the cause AND the exact fix."
+DO   : press Enter.
+NOTES: the money moment. The insidious part: NOTHING is broken - every hardware
+       check (B12/B13/B14) is green, the fabric is healthy. It's a CONFIG
+       regression (wrong NCCL_IB_HCA) that looks like generic slowness, so
+       teams burn days. The verdict names it + the knob. If asked: this exact
+       class hit a real GB300 customer this month and took a multi-day
+       war-room; Ground Control turns that into a one-line verdict. Business case.
 
 --- BEAT 5 : A DEAD RDMA PORT  (1:42 - 1:58)
     audit -u preflight --fixture fixtures/synth_fabric_fault -------------
-WHAT: runs preflight on a fabric-fault capture (a down port, a port throwing
-      errors, a congested port).
-WHY : shows it correlates NETWORK faults too, and names the specific bad link.
-SAY : "A dead network port. One port down, another throwing errors, a third
-       congested - the verdict pins the dead rail and the action: check the
-       cable, drain the node."
-DO  : press Enter.
+WHAT : runs preflight on a fabric-fault capture (down port, errors, congestion).
+SAY  : "A dead network port. One port down, another throwing errors, a third
+        congested - the verdict pins the dead rail and the action: check the
+        cable, drain the node."
+DO   : press Enter.
+NOTES: three network symptoms at once - B13 port DOWN (mlx5_5), B14 rising
+       error counters on mlx5_4 (symbol errors = flaky cable/optic), B11
+       congestion on mlx5_6. The verdict pins the dead one. A "rail" is one of
+       a node's parallel NIC-to-switch paths - lose one and multi-node
+       bandwidth craters. Shows it correlates NETWORK faults, not just GPU.
 
 --- BEAT 6 : CUSTOMER PROFILE  (1:58 - 2:14)
     audit --profile customer -u nccl_slow --fixture .../nccl_tcp_fallback -
-WHAT: same NCCL run, but through the customer profile.
-WHY : one engine, three audiences; the only thing that changes is safety,
-      redaction, and plain-English remediation.
-SAY : "Same engine, three audiences. In customer mode it's read-only, internal
-       names are hidden, and every failure carries a plain-English fix and a
-       'contact support' line."
-DO  : press Enter.
+WHAT : the same NCCL run, through the customer profile.
+SAY  : "Same engine, three audiences. In customer mode it's read-only, internal
+        names are hidden, and every failure carries a plain-English fix and a
+        'contact support' line."
+DO   : press Enter.
+NOTES: compare to Beat 4 - node name is now "node:<host>" (redacted), it says
+       read-only, and each failure gains remediation arrows + "Contact
+       CoreWeave support." Same engine, same finding - only safety, redaction,
+       and wording changed. How a non-expert customer gets the same answer
+       without seeing internal details.
 
 --- BEAT 7 : SUPPORT - JSON  (2:14 - 2:26)   [TRIM LEVER: skippable]
     audit --profile support -u gpu_fault --fixture .../synth_gpu_fault --json
-WHAT: emits structured JSON - verdict, severity, scope, supporting checks.
-WHY : machine-readable for pipelines / CI / dashboards.
-SAY : "For support and automation, the same run emits structured JSON - the
-       verdict, how severe, where, and the checks behind it."
-DO  : press Enter.
+WHAT : emits structured JSON - verdict, severity, scope, supporting checks.
+SAY  : "For support and automation, the same run emits structured JSON - the
+        verdict, how severe, where, and the checks behind it."
+DO   : press Enter.
+NOTES: point at exit_code (2 = failures, CI-friendly), the summary counts, and
+       the verdicts array (id / severity / scope / supporting). This is what
+       you feed dashboards, ticketing, automation. Short on time? skip to 7b.
 
 --- BEAT 7b : SUPPORT - THE BUNDLE  (2:26 - 2:44)
     audit --profile support -u gpu_fault --fixture .../synth_gpu_fault --bundle
-WHAT: writes a redacted tarball (result.json + raw evidence).
-WHY : one artifact a customer or engineer attaches straight to a ticket.
-SAY : "And a redacted bundle - the result plus the raw evidence - to attach
-       straight to a support ticket. Self-serve, into a clean handoff."
-DO  : press Enter.
+WHAT : writes a redacted tarball (result.json + raw evidence).
+SAY  : "And a redacted bundle - the result plus the raw evidence - to attach
+        straight to a support ticket. Self-serve, into a clean handoff."
+DO   : press Enter.
+NOTES: writes audit-bundle-*.tar.gz; inside = result.json + raw evidence files,
+       redacted. One artifact a customer attaches to a ticket, so support has
+       everything up front - no "run X and send output" back-and-forth. Closes
+       the self-serve -> support loop.
 
 --- CLOSE  (2:44 - 2:58)   close banner -----------------------------------
-WHAT: the summary banner.
-WHY : land the value and the moonshot.
-SAY : "Faster runs and less idle spend for customers; fewer escalations and
-       higher fleet use for CoreWeave. And the foundation to predict these
-       failures before they strike. Ground Control."
+WHAT : the summary banner.
+SAY  : "Faster runs and less idle spend for customers; fewer escalations and
+        higher fleet use for CoreWeave. And the foundation to predict these
+        failures before they strike. Ground Control."
+NOTES: land the three audiences + the moonshot in one breath; end on the name.
 
 
 ===========================================================================
