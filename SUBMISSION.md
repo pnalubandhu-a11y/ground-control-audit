@@ -4,32 +4,34 @@ Everything needed to record and submit. Deadline: **Thu Oct 15, 12:00 PM PT**.
 
 ---
 
-## 1. Demo video — ~2:50 script (hard cap 3:00)
+## 1. Demo video — 2 slides + full `./demo.sh` (tight ~2:58, hard cap 3:00)
 
-**Record the 6-beat cut:** `./demo.sh --video` (real terminal + mic, big font).
-Rehearse silently with `./demo.sh --video --auto`; hands-free one-take with
-`./demo.sh --video --timed`. The full narration teleprompter is
-[`VIDEO-SCRIPT.txt`](./VIDEO-SCRIPT.txt) — scroll it while you record. The table
-below is the same script in brief; each row is tagged with the rubric criterion it
-serves.
+**Structure:** present the **2 intro slides** (`intro-slides.pptx`, keep brief ~24s),
+then a real terminal running the **full `./demo.sh`** (8 beats). Pacing is tight —
+move briskly. Full presenter run-of-show (slide talk tracks + per-beat WHAT / WHY /
+SAY / DO) is in [`VIDEO-SCRIPT.txt`](./VIDEO-SCRIPT.txt) and
+[`DEMO-RUNOFSHOW.pdf`](./DEMO-RUNOFSHOW.pdf). Jargon explained inline.
 
 > Setup once: `python3 -m venv .venv && ./.venv/bin/pip install -e ".[dev]"`.
-> Do **not** run bare `./demo.sh` for the video — that's the full 8-beat version
-> and runs long. Use `--video`.
+> **Trim levers if you run long:** drop the slides, or skip Beat 7 (JSON) and show
+> only Beat 7b (the bundle).
 
-| Time | On screen | Say (narration) | Rubric |
+| Time | On screen | Say (jargon explained inline) | Rubric |
 |------|-----------|-----------------|--------|
-| **0:00–0:20** | Title / empty terminal | "Picture a thousand-GPU training run that suddenly slows to a crawl — or dies. Finding the cause means an engineer hand-correlating `nvidia-smi`, `ibstat`, and NCCL logs across dozens of nodes — **hours** of your most expensive people, while **thousands of dollars of GPUs sit idle**. Ground Control turns that into one command." | Speed + Business |
-| **0:20–0:38** | `audit -l` | "51 checks across host, network, and GPU, plus an NCCL extension. It **auto-detects the hardware** — checks that don't apply show NA instead of firing false alarms — and groups them into bundles so you run the right ones for the symptom." | Technical |
-| **0:38–0:58** | `audit -u preflight --fixture fixtures/cw0bec_blackwell_healthy` | "**Real data from a live CoreWeave Blackwell node** — 8 GPUs, 9 ConnectX-7 NICs. 17 checks, all green, exit 0 — so it drops straight into CI or a pre-flight gate and **stops a bad node before it ever gets a job**." | Technical |
-| **0:58–1:35** | `audit -u nccl_slow --fixture fixtures/nccl_tcp_fallback` | "A real failure — **real NCCL logs**. One wrong env var silently pushed NCCL off RDMA onto TCP sockets: a ~**100× collapse** that just looks like 'the cluster feels slow,' and teams burn days on it. Ground Control's **verdict engine correlates the signals into the named root cause and the exact fix**. That's the moonshot: an answer, not another dashboard." | Speed + Technical |
-| **1:35–1:55** | `audit -u gpu_fault --fixture fixtures/synth_gpu_fault` | "It generalizes. Three signals on the **same GPU** — XID, uncorrectable ECC, 91° — collapse into **one** verdict with an action: cordon the node and open an RMA." | Technical |
-| **1:55–2:35** | `audit --profile customer --fixture fixtures/nccl_tcp_fallback` → type `1`, then `s` | "One binary, **three audiences**. A **customer** picks a symptom in plain English — no flags, no expertise — and gets the root cause with internal IDs **redacted**. Then the payoff: **one keypress packages that exact run into a support bundle**. The customer self-diagnoses; if they still need us, **CoreWeave support gets structured evidence** instead of 'it's slow.'" | Business |
-| **2:35–2:50** | Close banner | "Concrete value: for customers, **faster runs, less idle GPU spend, less waiting on support**; for CoreWeave, **fewer escalations, faster triage, higher fleet utilization** — on the failures that hurt most." | Business |
-| **2:50–3:00** | Close banner | "And this is the **walking skeleton** of a bigger moon — an autonomous, fleet-scale flight director that predicts failures before they strike. 103 tests, three audiences, real hardware. Ground Control." | Presentation |
+| **0:00–0:12** | **Slide 1** (problem) | "A thousand-GPU run slows down — or dies. Finding out why is **hours** of hand-digging through logs across many nodes while **GPUs sit idle** — and it looks the same whether it's bad hardware or one wrong setting." | Speed + Business |
+| **0:12–0:24** | **Slide 2** (solution) | "Ground Control: one command **names the root cause and the fix in 30 seconds** — for ops, customers, and support. Let me show you." | Business + Technical |
+| **0:28–0:40** | `audit -l` | "51 checks across the server, network, and GPUs. It **auto-detects the hardware** — checks that don't apply show 'N-A' — and bundles the right checks per symptom." | Technical |
+| **0:40–0:54** | `audit -u preflight --fixture .../cw0bec_blackwell_healthy` | "**Real data from a live CoreWeave Blackwell node** — all green, exit zero: you can gate CI and **stop a bad node before it ever gets a job**." | Technical |
+| **0:54–1:10** | `audit -u gpu_fault --fixture .../synth_gpu_fault` | "First, a failing GPU. Three signs on the **same GPU** — driver errors, failing memory, 91° — collapse into **one** verdict: fence the node off and replace the card." | Technical |
+| **1:10–1:42** | `audit -u nccl_slow --fixture .../nccl_tcp_fallback` | "Now the big one. GPUs sync data in training via a library called **NCCL**; normally it uses **RDMA — the fast path where network cards talk directly, skipping the CPU**. One wrong setting silently dropped it to ordinary **TCP — ~100× slower**. The **verdict names the cause and the exact fix**." | Speed + Technical |
+| **1:42–1:58** | `audit -u preflight --fixture .../synth_fabric_fault` | "A dead network port — one down, one throwing errors, one congested. The verdict pins the dead **rail** and the action: check the cable, drain the node." | Technical |
+| **1:58–2:14** | `audit --profile customer -u nccl_slow --fixture .../nccl_tcp_fallback` | "Same engine, **three audiences**. Customer mode is read-only, internal names **hidden**, with a plain-English fix + a 'contact support' line." | Business |
+| **2:14–2:26** | `audit --profile support ... --json` | "For support and automation, the same run emits structured **JSON** — verdict, severity, scope, supporting checks." | Business |
+| **2:26–2:44** | `audit --profile support ... --bundle` | "And a redacted **bundle** — result + raw evidence — to attach straight to a ticket. Self-serve into a clean handoff." | Business |
+| **2:44–2:58** | Close banner | "Faster runs and less idle spend for customers; fewer escalations and higher fleet use for CoreWeave — and the foundation to **predict these failures before they strike**. Ground Control." | Business + Presentation |
 
-**Rubric coverage:** Speed (0:00, 0:58) · Business impact (0:00, 1:55, 2:35) ·
-Technical execution (0:20–1:55) · Presentation & clarity (the whole Problem →
+**Rubric coverage:** Speed (Slide 1, 1:10) · Business impact (Slides, 1:58–2:44, close) ·
+Technical execution (0:28–1:58) · Presentation & clarity (the whole Problem →
 Solution → Prototype → Impact arc).
 
 ---

@@ -1,141 +1,131 @@
 ===========================================================================
-  GROUND CONTROL - DEMO VIDEO SCRIPT        (target: ~2:50, hard cap 3:00)
+  GROUND CONTROL - FULL RUN OF SHOW  (2 slides + FULL ./demo.sh, cap 3:00)
 ---------------------------------------------------------------------------
-  RECORD THE 6-BEAT CUT:        ./demo.sh --video
-    hands-free one-take:        ./demo.sh --video --timed   (type only at menu)
-    rehearse pacing (silent):   ./demo.sh --video --auto
-  Real terminal + mic, big font. Read the SAY lines; DO the keystrokes.
-  Each block is tagged [RUBRIC | who it helps] so you deliver with intent.
+  1) Present intro-slides.pptx (Slide 1, Slide 2)   ~0:24  (keep slides brief)
+  2) Switch to a REAL terminal and run:  ./demo.sh   (the full 8-beat demo)
+  Pacing is TIGHT - move briskly, press Enter promptly. Jargon explained
+  inline. Each beat lists WHAT it does and WHY it matters.
+  TRIM LEVERS if you run long: drop the slides, or skip Beat 7 (JSON) and
+  show only Beat 7b (the bundle).
 ===========================================================================
 
 
----------------------------------------------------------------------------
-[ 0:00 - 0:20 ]  THE PROBLEM          (title card / empty terminal)
-[ Speed + Business impact | sets the stakes ]
----------------------------------------------------------------------------
+###########################################################################
+#  PART 1 - SLIDES  (0:00 - 0:24)  -- keep each slide ~12s
+###########################################################################
 
-  SAY:
-  "Picture a thousand-GPU training run that suddenly slows to a crawl - or
-   dies. Today, finding the cause means an engineer hand-correlating
-   nvidia-smi, ibstat, and NCCL logs across dozens of nodes - hours of your
-   most expensive people, while thousands of dollars of GPUs sit idle.
-   Ground Control turns all of that into one command."
+--- SLIDE 1 : THE PROBLEM  (0:00 - 0:12) -----------------------------------
+SAY:
+ "A thousand-GPU training run slows down - or dies. Finding out why is hours
+  of hand-digging through logs and counters across many nodes while the GPUs
+  sit idle - and it looks the same whether it's bad hardware or one wrong
+  setting."
 
-  DO: press Enter to begin.
-
-
----------------------------------------------------------------------------
-[ 0:20 - 0:38 ]  IT KNOWS EVERY CHECK        run: audit -l
-[ Technical execution + Presentation | ops ]
----------------------------------------------------------------------------
-
-  SAY:
-  "Here's the tool - 51 checks across host, network, and GPU, plus an NCCL
-   extension. It auto-detects the hardware, so checks that don't apply show
-   N-A instead of firing false alarms - and they group into bundles, so you
-   run the right checks for the symptom."
-
-  DO: press Enter.
+--- SLIDE 2 : THE SOLUTION  (0:12 - 0:24) ----------------------------------
+SAY:
+ "Ground Control: one command names the root cause and the fix in 30 seconds -
+  for ops, customers, and support. Let me show you."
+ -> switch to the terminal.
 
 
----------------------------------------------------------------------------
-[ 0:38 - 0:58 ]  A HEALTHY NODE, PROVEN REAL
-   run: audit -u preflight --fixture fixtures/cw0bec_blackwell_healthy
-[ Technical execution | ops + platform ]
----------------------------------------------------------------------------
+###########################################################################
+#  PART 2 - LIVE DEMO  (0:24 - ~2:58)   run: ./demo.sh
+###########################################################################
 
-  SAY:
-  "This is real data from a live CoreWeave Blackwell node - eight GPUs, nine
-   ConnectX-7 NICs. Seventeen checks, all green, exit code zero. That means
-   it drops straight into CI or a pre-flight gate - so you stop a bad node
-   BEFORE it ever gets a training job."
+--- INTRO BANNER  (0:24 - 0:28) -------------------------------------------
+WHAT: starts the demo runner; prints the one-line problem banner.
+WHY : hand-off from the slides to the real tool.
+SAY : "Here it is, live."
+DO  : press Enter.
 
-  DO: press Enter.
+--- BEAT 1 : THE CATALOG  (0:28 - 0:40)   audit -l ------------------------
+WHAT: lists all 51 checks (groups A/B/C/G + NCCL) and the use-case bundles.
+WHY : breadth, and it auto-detects the hardware - checks that don't apply
+      show N-A instead of firing false alarms.
+SAY : "51 checks across the server, the network, and the GPUs. It auto-detects
+       the hardware, and bundles the right checks per symptom."
+DO  : press Enter.
 
+--- BEAT 2 : A HEALTHY NODE  (0:40 - 0:54)
+    audit -u preflight --fixture fixtures/cw0bec_blackwell_healthy ---------
+WHAT: runs the preflight bundle against a REAL capture from a live CoreWeave
+      Blackwell node.
+WHY : proves it runs on real hardware; all-green + exit 0 can gate CI.
+SAY : "Real data from a live CoreWeave Blackwell node - eight GPUs, nine
+       network cards. All green, exit zero: you can gate CI and stop a bad
+       node before it ever gets a job."
+DO  : press Enter.
 
----------------------------------------------------------------------------
-[ 0:58 - 1:35 ]  THE HEADLINE: NCCL SILENTLY ON TCP   <-- slow down here
-   run: audit -u nccl_slow --fixture fixtures/nccl_tcp_fallback
-[ Speed + Technical execution | THE differentiator ]
----------------------------------------------------------------------------
+--- BEAT 3 : A FAILING GPU  (0:54 - 1:10)
+    audit -u gpu_fault --fixture fixtures/synth_gpu_fault -----------------
+WHAT: runs the GPU-fault bundle on a failing-GPU capture.
+WHY : shows correlation - three separate signals on ONE GPU become a single
+      verdict with an action.
+SAY : "First, a failing GPU. Three separate signs on the same GPU - driver
+       errors, failing memory, and ninety-one degrees - collapse into one
+       verdict: fence the node off and replace the card."
+DO  : press Enter.
 
-  SAY:
-  "Now a real failure - and these are real NCCL logs. One wrong environment
-   variable silently pushed NCCL off RDMA and onto TCP sockets: about a
-   HUNDRED-times bandwidth collapse that just looks like 'the cluster feels
-   slow' - teams can burn days chasing it.
-   Ground Control doesn't just show red lines. Its VERDICT ENGINE correlates
-   the signals into the named root cause AND the exact fix. That's the
-   moonshot: turning raw signals into an answer, not another dashboard."
+--- BEAT 4 : NCCL ON TCP - THE HEADLINE  (1:10 - 1:42)   <-- slow down
+    audit -u nccl_slow --fixture fixtures/nccl_tcp_fallback --------------
+WHAT: runs the NCCL-slow bundle against real NCCL logs where NCCL fell back
+      to TCP.
+WHY : the signature SILENT failure - a ~100x slowdown that just looks like
+      "the cluster is slow"; the verdict names cause + fix. The differentiator.
+SAY : "Now the big one. GPUs sync data during training through a library
+       called NCCL. Normally it uses RDMA - the fast path where network cards
+       talk directly and skip the CPU. One wrong setting silently dropped it
+       to ordinary TCP - about a hundred times slower - looking just like 'the
+       cluster is slow.' The verdict names the cause AND the exact fix. That's
+       the moonshot: an answer, not another dashboard."
+DO  : press Enter.
 
-  DO: press Enter.
+--- BEAT 5 : A DEAD RDMA PORT  (1:42 - 1:58)
+    audit -u preflight --fixture fixtures/synth_fabric_fault -------------
+WHAT: runs preflight on a fabric-fault capture (a down port, a port throwing
+      errors, a congested port).
+WHY : shows it correlates NETWORK faults too, and names the specific bad link.
+SAY : "A dead network port. One port down, another throwing errors, a third
+       congested - the verdict pins the dead rail and the action: check the
+       cable, drain the node."
+DO  : press Enter.
 
+--- BEAT 6 : CUSTOMER PROFILE  (1:58 - 2:14)
+    audit --profile customer -u nccl_slow --fixture .../nccl_tcp_fallback -
+WHAT: same NCCL run, but through the customer profile.
+WHY : one engine, three audiences; the only thing that changes is safety,
+      redaction, and plain-English remediation.
+SAY : "Same engine, three audiences. In customer mode it's read-only, internal
+       names are hidden, and every failure carries a plain-English fix and a
+       'contact support' line."
+DO  : press Enter.
 
----------------------------------------------------------------------------
-[ 1:35 - 1:55 ]  IT GENERALIZES: A FAILING GPU
-   run: audit -u gpu_fault --fixture fixtures/synth_gpu_fault
-[ Technical execution | ops ]
----------------------------------------------------------------------------
+--- BEAT 7 : SUPPORT - JSON  (2:14 - 2:26)   [TRIM LEVER: skippable]
+    audit --profile support -u gpu_fault --fixture .../synth_gpu_fault --json
+WHAT: emits structured JSON - verdict, severity, scope, supporting checks.
+WHY : machine-readable for pipelines / CI / dashboards.
+SAY : "For support and automation, the same run emits structured JSON - the
+       verdict, how severe, where, and the checks behind it."
+DO  : press Enter.
 
-  SAY:
-  "And it generalizes. Three separate signals on the SAME GPU - XID errors,
-   uncorrectable ECC, and ninety-one degrees - collapse into ONE verdict
-   with an action: cordon the node and open an R-M-A. No human puzzling it
-   out across ten terminals."
+--- BEAT 7b : SUPPORT - THE BUNDLE  (2:26 - 2:44)
+    audit --profile support -u gpu_fault --fixture .../synth_gpu_fault --bundle
+WHAT: writes a redacted tarball (result.json + raw evidence).
+WHY : one artifact a customer or engineer attaches straight to a ticket.
+SAY : "And a redacted bundle - the result plus the raw evidence - to attach
+       straight to a support ticket. Self-serve, into a clean handoff."
+DO  : press Enter.
 
-  DO: press Enter.
-
-
----------------------------------------------------------------------------
-[ 1:55 - 2:35 ]  THREE AUDIENCES: CUSTOMER SELF-SERVE -> SUPPORT
-   run: audit --profile customer --fixture fixtures/nccl_tcp_fallback
-[ Business impact | CUSTOMER + CoreWeave support ]
----------------------------------------------------------------------------
-
-  SAY (as the menu appears):
-  "And one binary serves three audiences. For a CUSTOMER: run audit, pick the
-   symptom in plain English - no flags, no cluster expertise..."
-
-  DO: type  1   (the redacted verdict appears)
-
-  SAY:
-  "...and they get the same root cause, with internal hostnames and IDs
-   redacted. Then the payoff -"
-
-  DO: type  s   (writes the support bundle)
-
-  SAY:
-  "...one keypress packages that exact run into a support bundle. The
-   customer self-diagnoses - and if they still need us, CoreWeave support
-   gets structured evidence instead of 'my cluster is slow.'"
-
-  DO: press Enter, then type  q
-
-
----------------------------------------------------------------------------
-[ 2:35 - 2:50 ]  WHY IT MATTERS        (close banner on screen)
-[ Business impact | CUSTOMER + CoreWeave ]
----------------------------------------------------------------------------
-
-  SAY:
-  "The value is concrete. For customers: faster runs, less idle GPU spend,
-   less waiting on support. For CoreWeave: fewer escalations, faster triage,
-   and higher fleet utilization - on exactly the failures that hurt most."
-
-
----------------------------------------------------------------------------
-[ 2:50 - 3:00 ]  THE MOON
-[ Presentation ]
----------------------------------------------------------------------------
-
-  SAY:
-  "And this is just the walking skeleton of a bigger moon: an autonomous,
-   fleet-scale flight director that predicts failures before they strike.
-   103 tests, three audiences, real hardware. Ground Control."
+--- CLOSE  (2:44 - 2:58)   close banner -----------------------------------
+WHAT: the summary banner.
+WHY : land the value and the moonshot.
+SAY : "Faster runs and less idle spend for customers; fewer escalations and
+       higher fleet use for CoreWeave. And the foundation to predict these
+       failures before they strike. Ground Control."
 
 
 ===========================================================================
   STOP UNDER 3:00.  Export mp4 -> upload to the submission form.
-  Rubric hit: Speed (0:00,0:58), Business impact (1:55,2:35),
-  Technical execution (0:20-1:55), Presentation (whole arc).
+  Rubric: Speed (slide 1, beat 4) | Business (slides, beats 6-7b, close)
+          Technical (beats 1-5)   | Presentation (whole arc)
 ===========================================================================
