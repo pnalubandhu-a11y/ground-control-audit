@@ -26,3 +26,6 @@ output/
 *.swp
 .idea/
 .vscode/
+
+# LibreOffice/Office lock files
+~$*
